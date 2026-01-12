@@ -1,0 +1,48 @@
+name: lumora
+description: "A new Flutter project."
+publish_to: 'none' 
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Icons
+  cupertino_icons: ^1.0.8
+  flutter_svg: ^2.0.9
+
+  # Fonts
+  google_fonts: ^6.2.1
+
+  # Animations
+  lottie: ^2.6.0
+
+  # Charts & Calendar
+  fl_chart: ^0.69.0
+  table_calendar: ^3.0.9
+
+  # Responsiveness
+  responsive_framework: ^1.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    # - assets/images/
+    # - assets/icons/
+    # - assets/lottie/
+
+  # Example of custom fonts (optional if not using google_fonts)
+  # fonts:
+  #   - family: CustomFont
+  #     fonts:
+  #       - asset: assets/fonts/CustomFont-Regular.ttf
