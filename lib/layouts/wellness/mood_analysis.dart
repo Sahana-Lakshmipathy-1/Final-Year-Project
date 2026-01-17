@@ -14,7 +14,7 @@ class MoodInsightsPage extends StatelessWidget {
         centerTitle: true,
         iconTheme: IconThemeData(color: AppTheme.primary),
         title: Text(
-          "AI Mood Insights",
+          "Mood Insights",
           style: AppTheme.h2,
         ),
       ),
@@ -28,50 +28,46 @@ class MoodInsightsPage extends StatelessWidget {
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 80),
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
             physics: const BouncingScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: const [
                 _InsightCard(
-                  title: "🧠 Overall Mood Trend",
+                  title: "Overall mood trend",
                   content:
-                      "Your mood has remained mostly stable and positive. Small dips align with low-sleep days.",
+                      "Your mood has remained mostly stable and positive. Minor dips align closely with low-sleep days.",
                   highlight:
-                      "Mood Stability Score: 8.3 / 10  •  ↑ 0.7 vs last week",
-                  footer: "😐 😊 😁 😊 😐 😴 😊",
+                      "Mood stability score: 8.3 / 10  •  ↑ 0.7 vs last week",
+                  footer: "Neutral → Happy → Energized → Happy",
                 ),
 
                 _InsightCard(
-                  title: "🌙 Sleep Impact",
+                  title: "Sleep impact",
                   content:
-                      "You average 6h 20m of sleep. Days above 7h consistently show better focus and morning mood.",
-                  tip: "Try maintaining a fixed bedtime around 11:00 PM.",
+                      "You average 6h 20m of sleep. Days above 7h consistently show better focus and emotional balance.",
+                  tip: "Aim for a consistent bedtime around 11:00 PM.",
                 ),
 
                 _InsightCard(
-                  title: "🏋️ Exercise & Energy",
+                  title: "Exercise & energy",
                   content:
                       "Workout consistency strongly boosts energy levels. Mid-week activity peaks help maintain momentum.",
-                  tag: "Motivation Momentum: High",
+                  tag: "Motivation momentum: High",
                 ),
 
                 _InsightCard(
-                  title: "🥗 Nutrition Influence",
+                  title: "Nutrition influence",
                   content:
                       "Balanced meals and hydration improve post-workout mood. Skipping breakfast lowers mid-day energy.",
-                  tip: "Include protein + complex carbs in breakfast.",
+                  tip: "Include protein and complex carbs in breakfast.",
                 ),
 
                 _InsightCard(
-                  title: "💫 AI Reflection",
+                  title: "Reflection",
                   content:
-                      "You’re doing well maintaining balance. Improving sleep regularity will amplify both physical and mental gains.",
+                      "You’re maintaining a healthy balance. Improving sleep regularity will amplify both physical and mental gains.",
                 ),
-
-                const SizedBox(height: 28),
-
-                _ActionBar(),
               ],
             ),
           ),
@@ -112,7 +108,6 @@ class _InsightCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title, style: AppTheme.h2.copyWith(fontSize: 16)),
-
           const SizedBox(height: 8),
 
           Text(
@@ -122,7 +117,12 @@ class _InsightCard extends StatelessWidget {
 
           if (footer != null) ...[
             const SizedBox(height: 10),
-            Text(footer!, style: const TextStyle(fontSize: 22)),
+            Text(
+              footer!,
+              style: AppTheme.caption.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
 
           if (highlight != null) ...[
@@ -188,7 +188,7 @@ class _TipBox extends StatelessWidget {
         border: Border.all(color: AppTheme.borderSoft),
       ),
       child: Text(
-        "💡 $text",
+        "Tip: $text",
         style: AppTheme.caption.copyWith(
           color: AppTheme.textWhite,
         ),
@@ -215,90 +215,6 @@ class _Tag extends StatelessWidget {
         style: AppTheme.caption.copyWith(
           fontWeight: FontWeight.w700,
           color: AppTheme.warning,
-        ),
-      ),
-    );
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                ACTION BAR                                  */
-/* -------------------------------------------------------------------------- */
-
-class _ActionBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 10,
-        children: [
-          _ActionButton(
-            label: "Save Insight",
-            color: AppTheme.success,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Insight saved to journal")),
-              );
-            },
-          ),
-          _ActionButton(
-            label: "Re-analyze",
-            color: AppTheme.primary,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Re-analyzing mood data")),
-              );
-            },
-          ),
-          _ActionButton(
-            label: "Ask AI",
-            color: AppTheme.cardBgAlt,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Opening AI wellness chat")),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _ActionButton({
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 150,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: AppTheme.radiusMedium,
-          ),
-          elevation: 6,
-        ),
-        onPressed: onTap,
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: AppTheme.body.copyWith(
-            color: AppTheme.textWhite,
-            fontWeight: FontWeight.w700,
-            fontSize: 13,
-          ),
         ),
       ),
     );

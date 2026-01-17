@@ -23,12 +23,13 @@ class _WellnessChatPageState extends State<WellnessChatPage> {
       _isThinking = true;
     });
 
-    // Simulated AI response (replace later)
     Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
       setState(() {
         _messages.add(
           _ChatMessage.bot(
-            "I’m here with you 💜\n\nIt sounds like you’re carrying a lot today. "
+            "I’m here with you 💜\n\n"
+            "It sounds like you’re carrying a lot today. "
             "Do you want to talk about what’s been weighing on you?",
           ),
         );
@@ -48,16 +49,15 @@ class _WellnessChatPageState extends State<WellnessChatPage> {
           icon: Icon(Icons.arrow_back, color: AppTheme.primary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          "Wellness Coach",
-          style: AppTheme.h2,
-        ),
+        title: Text("Wellness Coach", style: AppTheme.h2),
       ),
       body: SafeArea(
         child: Column(
           children: [
+            /// CHAT LIST
             Expanded(
               child: ListView.builder(
+                physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
@@ -67,9 +67,7 @@ class _WellnessChatPageState extends State<WellnessChatPage> {
                   if (_isThinking && index == _messages.length) {
                     return const _TypingIndicator();
                   }
-
-                  final msg = _messages[index];
-                  return _ChatBubble(message: msg);
+                  return _ChatBubble(message: _messages[index]);
                 },
               ),
             ),
@@ -88,7 +86,7 @@ class _WellnessChatPageState extends State<WellnessChatPage> {
                   Expanded(
                     child: TextField(
                       controller: _controller,
-                      style: AppTheme.body,
+                      style: AppTheme.body.copyWith(color: Colors.white),
                       decoration: InputDecoration(
                         hintText: "Share what’s on your mind…",
                         hintStyle: AppTheme.caption,
@@ -98,10 +96,7 @@ class _WellnessChatPageState extends State<WellnessChatPage> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(
-                      Icons.send_rounded,
-                      color: AppTheme.primary,
-                    ),
+                    icon: Icon(Icons.send_rounded, color: AppTheme.primary),
                     onPressed: _sendMessage,
                   ),
                 ],
@@ -115,7 +110,7 @@ class _WellnessChatPageState extends State<WellnessChatPage> {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                               CHAT MODELS                                  */
+/*                                  MODEL                                     */
 /* -------------------------------------------------------------------------- */
 
 class _ChatMessage {
@@ -134,7 +129,6 @@ class _ChatMessage {
 
 class _ChatBubble extends StatelessWidget {
   final _ChatMessage message;
-
   const _ChatBubble({required this.message});
 
   @override
@@ -150,9 +144,7 @@ class _ChatBubble extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: isUser
-              ? AppTheme.primary.withOpacity(0.9)
-              : AppTheme.cardBgAlt,
+          color: isUser ? AppTheme.primary : AppTheme.cardBgAlt,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(18),
             topRight: const Radius.circular(18),
@@ -167,9 +159,9 @@ class _ChatBubble extends StatelessWidget {
         child: Text(
           message.text,
           style: AppTheme.body.copyWith(
-            color: isUser ? AppTheme.bg : AppTheme.textWhite,
-            height: 1.4,
-            fontWeight: isUser ? FontWeight.w700 : FontWeight.w500,
+            color: Colors.white,
+            height: 1.5,
+            fontWeight: isUser ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
       ),
@@ -191,10 +183,7 @@ class _TypingIndicator extends StatelessWidget {
       child: Row(
         children: [
           const SizedBox(width: 12),
-          Text(
-            "Wellness Coach is thinking",
-            style: AppTheme.caption,
-          ),
+          Text("Wellness Coach is thinking", style: AppTheme.caption),
           const SizedBox(width: 8),
           _Dot(),
           _Dot(delay: 200),
@@ -225,10 +214,7 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
       vsync: this,
     )..repeat(reverse: true);
 
-    _fade = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    );
+    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
   }
 
   @override

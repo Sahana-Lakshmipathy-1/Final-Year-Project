@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:lumora/theme/app_theme.dart';
+
 import 'package:lumora/layouts/wellness/sleep_tracker.dart';
 import 'package:lumora/layouts/wellness/mood_analysis.dart';
 import 'package:lumora/layouts/wellness/wellness_bot.dart';
 import 'package:lumora/layouts/wellness/wellness_action_card.dart';
+
+import 'package:lumora/layouts/wellness/meditation_library_page.dart';
 
 class WellnessPage extends StatefulWidget {
   const WellnessPage({super.key});
@@ -12,12 +16,46 @@ class WellnessPage extends StatefulWidget {
   State<WellnessPage> createState() => _WellnessPageState();
 }
 
-class _WellnessPageState extends State<WellnessPage> {
-  int selectedMood = 4;
-  final moods = ["😩", "😟", "😐", "😊", "😁"];
+/* -------------------------------------------------------------------------- */
+/*                                  MODELS                                    */
+/* -------------------------------------------------------------------------- */
 
-  void _go(Widget page) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+class MoodOption {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const MoodOption({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+}
+
+const List<MoodOption> moodOptions = [
+  MoodOption(icon: LucideIcons.angry, label: "Angry", color: Colors.red),
+  MoodOption(icon: LucideIcons.frown, label: "Sad", color: Colors.orange),
+  MoodOption(icon: LucideIcons.meh, label: "Neutral", color: Colors.yellow),
+  MoodOption(icon: LucideIcons.smile, label: "Happy", color: Colors.green),
+  MoodOption(
+    icon: LucideIcons.laugh,
+    label: "Energized",
+    color: Color(0xFF1B5E20),
+  ),
+];
+
+/* -------------------------------------------------------------------------- */
+/*                                  PAGE                                      */
+/* -------------------------------------------------------------------------- */
+
+class _WellnessPageState extends State<WellnessPage> {
+  int _selectedMoodIndex = 3;
+
+  void _go(BuildContext context, Widget page) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => page),
+    );
   }
 
   @override
@@ -34,106 +72,152 @@ class _WellnessPageState extends State<WellnessPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// ------------------------------------------------------------
-            /// HERO – MOOD CHECK-IN
-            /// ------------------------------------------------------------
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: AppTheme.elevatedCard,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("How are you feeling right now?", style: AppTheme.h3),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: List.generate(moods.length, (i) {
-                      final active = selectedMood == i;
-                      return GestureDetector(
-                        onTap: () => setState(() => selectedMood = i),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            color: active
-                                ? AppTheme.primary.withOpacity(.2)
-                                : AppTheme.cardBgAlt,
-                            borderRadius: AppTheme.radiusMedium,
-                            border: Border.all(
-                              color: active
-                                  ? AppTheme.primary
-                                  : AppTheme.borderSoft,
-                              width: active ? 2 : 1,
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            moods[i],
-                            style: const TextStyle(fontSize: 26),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ],
-              ),
+            _MoodCheckInCard(
+              selectedIndex: _selectedMoodIndex,
+              onSelect: (i) => setState(() => _selectedMoodIndex = i),
             ),
 
             const SizedBox(height: 28),
 
-            /// ------------------------------------------------------------
-            /// MOOD INSIGHTS
-            /// ------------------------------------------------------------
             WellnessActionCard(
               title: "Mood insights",
               subtitle: "Understand your emotional patterns",
-              cta: "Analyze with AI",
-              icon: Icons.insights,
-              onTap: () => _go(const MoodInsightsPage()),
+              cta: "View insights",
+              icon: LucideIcons.lineChart,
+              onTap: () => _go(context, const MoodInsightsPage()),
             ),
 
-            /// ------------------------------------------------------------
-            /// SLEEP
-            /// ------------------------------------------------------------
             WellnessActionCard(
               title: "Sleep tracker",
               subtitle: "Build better rest habits",
               cta: "Log sleep",
-              icon: Icons.bedtime_rounded,
-              onTap: () => _go(const SleepTrackerPage()),
+              icon: LucideIcons.moon,
+              onTap: () => _go(context, const SleepTrackerPage()),
             ),
 
-            /// ------------------------------------------------------------
-            /// SUPPORT
-            /// ------------------------------------------------------------
             WellnessActionCard(
               title: "Talk it out",
               subtitle: "Chat with your wellness assistant",
               cta: "Start conversation",
-              icon: Icons.chat_bubble_outline,
-              onTap: () => _go(const WellnessChatPage()),
+              icon: LucideIcons.messageCircle,
+              onTap: () => _go(context, const WellnessChatPage()),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
 
-            /// ------------------------------------------------------------
-            /// SOFT CTA
-            /// ------------------------------------------------------------
-            Center(
-              child: TextButton(
-                onPressed: () {},
-                child: Text(
-                  "Looking for meditation?",
-                  style: AppTheme.body.copyWith(
-                    color: AppTheme.primary,
-                    fontWeight: FontWeight.w600,
+            /// ------------------ MEDITATION CTA ------------------
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => _go(context, const MeditationLibraryPage()),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.cardBgAlt,
+                  foregroundColor: AppTheme.textWhite,
+                  elevation: 8,
+                  shadowColor: AppTheme.primary.withOpacity(0.25),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: AppTheme.radiusMedium,
+                    side: BorderSide(
+                      color: AppTheme.primary.withOpacity(0.4),
+                    ),
                   ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      LucideIcons.leaf,
+                      size: 20,
+                      color: AppTheme.primary,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      "Try a short meditation",
+                      style: AppTheme.body.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                          MOOD CHECK-IN CARD                                 */
+/* -------------------------------------------------------------------------- */
+
+class _MoodCheckInCard extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onSelect;
+
+  const _MoodCheckInCard({
+    required this.selectedIndex,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: AppTheme.elevatedCard,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("How are you feeling right now?", style: AppTheme.h3),
+          const SizedBox(height: 14),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(moodOptions.length, (index) {
+              final mood = moodOptions[index];
+              final isActive = selectedIndex == index;
+
+              return Tooltip(
+                message: mood.label,
+                child: GestureDetector(
+                  onTap: () => onSelect(index),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? mood.color.withOpacity(0.15)
+                          : AppTheme.cardBgAlt,
+                      borderRadius: AppTheme.radiusMedium,
+                      border: Border.all(
+                        color: isActive ? mood.color : AppTheme.borderSoft,
+                        width: isActive ? 2 : 1,
+                      ),
+                      boxShadow: isActive
+                          ? [
+                              BoxShadow(
+                                color: mood.color.withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ]
+                          : [],
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      mood.icon,
+                      size: 24,
+                      color: isActive ? mood.color : AppTheme.textMuted,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
       ),
     );
   }
