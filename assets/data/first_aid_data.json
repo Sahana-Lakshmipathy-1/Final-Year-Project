@@ -1,0 +1,188 @@
+{
+  "categories": [
+    {
+      "id": "sprains_fractures",
+      "title": "Sprains & Fractures",
+      "steps": [
+        {
+          "title": "Check Safety",
+          "description": "Ensure the scene is safe before you approach the injured person."
+        },
+        {
+          "title": "Support the Injury",
+          "description": "Have the person rest and keep the injured area still. Avoid movement that may worsen the injury."
+        },
+        {
+          "title": "Apply Cold",
+          "description": "Use an ice pack or cold compress wrapped in cloth to reduce swelling and pain. Apply for 10–20 minutes, avoid direct contact with skin."
+        },
+        {
+          "title": "Immobilize",
+          "description": "If available, use a splint or sling to keep the injured limb stable. Do not try to align bones or push protruding bones back in. If pain is severe or deformity is obvious, seek medical help immediately." 
+        },
+        {
+          "title": "Elevate",
+          "description": "Raise the injury above heart level to help reduce swelling if it does not cause pain."
+        }
+      ],
+      "warnings": [
+        "Do NOT try to realign broken bones by yourself.",
+        "Do NOT ignore severe pain or inability to move the limb."
+      ],
+      "seek_help_if": [
+        "Deformity is obvious, such as bone protruding.",
+        "Injury is accompanied by severe pain, loss of sensation, or inability to move."
+      ]
+    },
+    {
+      "id": "cuts_bleeding",
+      "title": "Cuts & Bleeding",
+      "steps": [
+        {
+          "title": "Wash Hands",
+          "description": "Before touching the wound, wash your hands or wear disposable gloves if available."
+        },
+        {
+          "title": "Stop the Bleeding",
+          "description": "Apply firm pressure with a clean cloth, cotton, or sterile bandage until the bleeding stops."
+        },
+        {
+          "title": "Elevate the Limb",
+          "description": "If bleeding is on an arm or leg, raise it above heart level to help slow bleeding."
+        },
+        {
+          "title": "Clean the Wound",
+          "description": "Once bleeding is controlled, rinse gently with clean water. Avoid harsh scrubbing or antiseptics that may damage tissue."
+        },
+        {
+          "title": "Cover the Wound",
+          "description": "Place a clean bandage or sterile dressing over the wound to protect it from dirt and infection."
+        }
+      ],
+      "warnings": [
+        "Do NOT remove a large embedded object from a wound — stabilize it instead.",
+        "Do NOT wait if bleeding is heavy — get help quickly."
+      ],
+      "seek_help_if": [
+        "Bleeding does not stop after 10–15 minutes of firm pressure.",
+        "You suspect the wound may need stitches or there may be deep damage."
+      ]
+    },
+    {
+      "id": "burns_scalds",
+      "title": "Burns & Scalds",
+      "steps": [
+        {
+          "title": "Stop the Burning",
+          "description": "Remove the person from the source of heat; stop the burning process immediately."
+        },
+        {
+          "title": "Cool the Burn",
+          "description": "Run cool (not ice-cold) water over the burn for at least 10 minutes to reduce pain and heat."
+        },
+        {
+          "title": "Protect the Burn",
+          "description": "Cover with a clean, non-sticking dressing or cloth to protect from infection."
+        },
+        {
+          "title": "Monitor Pain & Reaction",
+          "description": "Avoid applying creams or ointments without guidance from a healthcare professional."
+        }
+      ],
+      "warnings": [
+        "Do NOT apply ice directly to a burn.",
+        "Do NOT apply butter or toothpaste — these can worsen injury."
+      ],
+      "seek_help_if": [
+        "The burn is large, deeper than a superficial burn, or involves the face/hands/genitals.",
+        "There are signs of shock or breathing difficulties."
+      ]
+    },
+    {
+      "id": "choking",
+      "title": "Choking",
+      "steps": [
+        {
+          "title": "Ask if They Can Cough",
+          "description": "If the person can cough or speak, encourage them to continue coughing to clear the airway."
+        },
+        {
+          "title": "Heimlich Maneuver",
+          "description": "If a person is choking and cannot cough, perform abdominal thrusts (Heimlich maneuver) by standing behind the person, placing your fist above their navel, grasping it with your other hand and pressing inward and upward."
+        },
+        {
+          "title": "Alternate Back Blows",
+          "description": "If abdominal thrusts are not possible, give five firm back blows between the shoulder blades with the heel of your hand."
+        }
+      ],
+      "warnings": [
+        "Do NOT perform abdominal thrusts on infants — follow age-specific pediatric guidance.",
+        "Do NOT finger sweep unless you can clearly see the object."
+      ],
+      "seek_help_if": [
+        "The person becomes unconscious.",
+        "The airway is not clearing after repeated attempts."
+      ]
+    },
+    {
+      "id": "bites_allergies",
+      "title": "Bites, Stings & Allergies",
+      "steps": [
+        {
+          "title": "Remove Stinger",
+          "description": "If the bite/sting left a stinger (e.g., bee), scrape it off with a flat object — do NOT squeeze it out."
+        },
+        {
+          "title": "Clean the Area",
+          "description": "Wash the bite area gently with soap and water to prevent infection."
+        },
+        {
+          "title": "Cold Compress",
+          "description": "Apply a cold compress or ice wrapped in cloth to reduce swelling and pain."
+        },
+        {
+          "title": "Watch for Allergic Signs",
+          "description": "Observe for swelling, difficulty breathing, or rapid heartbeat — these may indicate a severe allergic reaction."
+        }
+      ],
+      "warnings": [
+        "Do NOT delay if you suspect anaphylaxis — severe allergies can progress quickly.",
+        "Do NOT ignore swelling around the mouth or throat."
+      ],
+      "seek_help_if": [
+        "Signs of anaphylactic reaction appear (difficulty breathing, swelling of face/throat).",
+        "The bite/sting shows infection signs (increasing redness, warmth, pus)."
+      ]
+    },
+    {
+      "id": "poisoning",
+      "title": "Poisoning & Environmental",
+      "steps": [
+        {
+          "title": "Remove from Source",
+          "description": "If inhaled poison or fumes are suspected, get the person to fresh air immediately — do NOT enter unsafe areas yourself."
+        },
+        {
+          "title": "Rinse Mouth",
+          "description": "If the person swallowed a toxic substance and is conscious, have them rinse their mouth with water — do NOT induce vomiting."
+        },
+        {
+          "title": "Rinse Exposed Skin",
+          "description": "If poison contacted skin, wash thoroughly with water to remove the harmful agent."
+        },
+        {
+          "title": "Keep Product Handy",
+          "description": "Keep the container/label of the substance for emergency responders and do NOT give anything by mouth unless advised by professionals."
+        }
+      ],
+      "warnings": [
+        "Do NOT induce vomiting unless instructed by a medical professional.",
+        "Do NOT delay calling for help if the person is unconscious or having seizures."
+      ],
+      "seek_help_if": [
+        "The person is unconscious, having seizures, or has stopped breathing.",
+        "The substance is unknown and potentially toxic."
+      ]
+    }
+  ]
+}
