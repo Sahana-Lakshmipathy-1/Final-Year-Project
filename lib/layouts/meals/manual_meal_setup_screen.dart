@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
 
 class ManualMealSetupScreen extends StatefulWidget {
   const ManualMealSetupScreen({super.key});
@@ -33,18 +34,10 @@ class _ManualMealSetupScreenState extends State<ManualMealSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const bg = Color(0xFF0F1431);
-    const card = Color(0xFF181C3A);
-    const edge = Color(0xFF2C315C);
-    const accent = Color(0xFFB787FF);
-    const text = Color(0xFFE9ECFF);
-    const muted = Color(0xFFB7C0E0);
-
     return Scaffold(
-      backgroundColor: bg,
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
-        title: const Text('Manual Meal Routine'),
-        backgroundColor: card,
+        title: const Text('Manual Meal Plan'),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -54,25 +47,13 @@ class _ManualMealSetupScreenState extends State<ManualMealSetupScreen> {
 
           return Container(
             margin: const EdgeInsets.only(bottom: 16),
+            decoration: AppTheme.card,
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: card,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: edge),
-            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// DAY HEADER
-                Text(
-                  day['day'],
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: text,
-                  ),
-                ),
-
+                /// DAY TITLE
+                Text(day['day'], style: AppTheme.h2),
                 const SizedBox(height: 12),
 
                 /// MEALS
@@ -84,13 +65,11 @@ class _ManualMealSetupScreenState extends State<ManualMealSetupScreen> {
                 }).toList(),
 
                 /// ADD MEAL
+                const SizedBox(height: 8),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.add),
                   label: const Text('Add Meal'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: accent,
-                    side: BorderSide(color: accent),
-                  ),
+                  style: AppTheme.ghostButton,
                   onPressed: () {
                     setState(() {
                       day['meals'].add({
@@ -107,29 +86,20 @@ class _ManualMealSetupScreenState extends State<ManualMealSetupScreen> {
         },
       ),
 
-      /// SAVE
+      /// SAVE CTA
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16),
         child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: accent,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          onPressed: () {
-            Navigator.pop(context, routine);
-          },
-          child: const Text(
-            'Save Meal Routine',
-            style: TextStyle(
-              color: Color(0xFF1A1034),
-              fontWeight: FontWeight.w800,
-            ),
-          ),
+          style: AppTheme.primaryButton,
+          onPressed: () => Navigator.pop(context, routine),
+          child: const Text('Save Meal Routine'),
         ),
       ),
     );
   }
 }
+
+/// ───────────────── MEAL EDITOR ─────────────────
 
 class _MealEditor extends StatefulWidget {
   final Map<String, dynamic> meal;
@@ -154,25 +124,26 @@ class _MealEditorState extends State<_MealEditor> {
     super.initState();
     if (widget.meal['time'] != null) {
       final p = widget.meal['time'].split(':');
-      selectedTime = TimeOfDay(hour: int.parse(p[0]), minute: int.parse(p[1]));
+      selectedTime = TimeOfDay(
+        hour: int.parse(p[0]),
+        minute: int.parse(p[1]),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    const muted = Color(0xFFB7C0E0);
-    const accent = Color(0xFFB787FF);
-
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF14183A),
-        borderRadius: BorderRadius.circular(12),
+        color: AppTheme.cardBgAlt,
+        borderRadius: AppTheme.radiusMedium,
+        border: Border.all(color: AppTheme.borderSoft),
       ),
       child: Column(
         children: [
-          /// MEAL NAME + REMOVE
+          /// HEADER
           Row(
             children: [
               Expanded(
@@ -186,18 +157,18 @@ class _MealEditorState extends State<_MealEditor> {
                             'Cheat Meal',
                           ]
                           .map(
-                            (e) => DropdownMenuItem(
-                              value: e,
-                              child: Text(e),
-                            ),
+                            (e) => DropdownMenuItem(value: e, child: Text(e)),
                           )
                           .toList(),
                   onChanged: (v) => setState(() => widget.meal['name'] = v),
-                  decoration: const InputDecoration(labelText: 'Meal Type'),
+                  decoration: const InputDecoration(
+                    labelText: 'Meal Type',
+                  ),
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close, color: muted),
+                icon: const Icon(Icons.close),
+                color: AppTheme.textMuted,
                 onPressed: widget.onRemove,
               ),
             ],
@@ -208,16 +179,16 @@ class _MealEditorState extends State<_MealEditor> {
           /// TIME PICKER
           Row(
             children: [
-              const Text("Meal Time", style: TextStyle(color: muted)),
+              Text("Meal Time", style: AppTheme.bodyMuted),
               const SizedBox(width: 12),
               Text(
                 selectedTime == null
                     ? "Not set"
                     : selectedTime!.format(context),
+                style: AppTheme.body,
               ),
               const Spacer(),
               TextButton(
-                child: const Text("Pick"),
                 onPressed: () async {
                   final t = await showTimePicker(
                     context: context,
@@ -231,21 +202,23 @@ class _MealEditorState extends State<_MealEditor> {
                     });
                   }
                 },
+                child: const Text("Pick"),
               ),
             ],
           ),
 
           const SizedBox(height: 8),
 
-          /// FOOD LIST
+          /// FOOD ITEMS
           ...widget.meal['items'].map<Widget>((item) {
             return ListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,
-              title: Text(item['food']),
-              subtitle: Text('${item['grams']} g'),
+              title: Text(item['food'], style: AppTheme.body),
+              subtitle: Text('${item['grams']} g', style: AppTheme.caption),
               trailing: IconButton(
                 icon: const Icon(Icons.delete_outline),
+                color: AppTheme.textMuted,
                 onPressed: () =>
                     setState(() => widget.meal['items'].remove(item)),
               ),
@@ -271,7 +244,8 @@ class _MealEditorState extends State<_MealEditor> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.add, color: accent),
+                icon: const Icon(Icons.add),
+                color: AppTheme.primary,
                 onPressed: () {
                   if (foodCtrl.text.isNotEmpty && gramCtrl.text.isNotEmpty) {
                     setState(() {

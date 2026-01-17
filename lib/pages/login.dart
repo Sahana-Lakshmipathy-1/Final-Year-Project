@@ -1,60 +1,70 @@
-import "package:flutter/material.dart";
-import "package:lumora/components/login/login_form.dart";
-import "signup.dart";
+import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
+import 'package:lumora/components/login/login_form.dart';
+import 'signup.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const bgColor = Color(0xFF1a1a40);
-    const titleColor = Color(0xFFeeeafd);
-    const accentColor = Color(0xFFb087f6);
-
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: AppTheme.bg,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-            child: Container(
+            child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    "Welcome Back",
+                  /// ------------------------------------------------------------
+                  /// HEADER
+                  /// ------------------------------------------------------------
+                  Text(
+                    "Welcome back 👋",
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w700,
-                      color: titleColor,
-                    ),
+                    style: AppTheme.h1,
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Sign in to continue your wellness journey",
+                    textAlign: TextAlign.center,
+                    style: AppTheme.bodyMuted,
+                  ),
 
-                  // Login form
-                  const LoginForm(),
+                  const SizedBox(height: 36),
 
-                  const SizedBox(height: 24),
+                  /// ------------------------------------------------------------
+                  /// LOGIN FORM CARD
+                  /// ------------------------------------------------------------
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: AppTheme.card,
+                    child: const LoginForm(),
+                  ),
 
-                  // Sign-up link
+                  const SizedBox(height: 28),
+
+                  /// ------------------------------------------------------------
+                  /// FOOTER ACTION
+                  /// ------------------------------------------------------------
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const SignUpPage()),
+                        MaterialPageRoute(
+                          builder: (_) => const SignUpPage(),
+                        ),
                       );
                     },
-                    child: const Text(
-                      "Don’t have an account? Sign Up",
+                    child: Text(
+                      "Don’t have an account? Sign up",
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: accentColor,
-                        decoration: TextDecoration.underline,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                      style: AppTheme.body.copyWith(
+                        color: AppTheme.primary,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
 import 'package:lumora/layouts/exercise/input_preference.dart';
 import 'package:lumora/layouts/exercise/manual_routine_setup_screen.dart';
 import 'package:lumora/layouts/meals/meal_input_preference.dart';
@@ -12,100 +13,121 @@ class PlansScreen extends StatefulWidget {
 }
 
 class _PlansScreenState extends State<PlansScreen> {
-  int _activeTabIndex = 0; // 0 = Fitness, 1 = Meals
+  int _activeTab = 0; // 0 = Fitness, 1 = Meals
+
+  void _go(BuildContext context, Widget page) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  }
 
   @override
   Widget build(BuildContext context) {
-    const bgColor = Color(0xFF0F1431);
-    const cardEdge = Color(0xFF262A59);
-    const muted = Color(0xFFB7C0E0);
-    const accent = Color(0xFFB787FF);
-    const btnColor = Color(0xFF6F59FF);
-    const btnGhost = Color(0xFF2A2E58);
+    final isFitness = _activeTab == 0;
 
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: AppTheme.bg,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              /// ------------------------------------------------------------
               /// HEADER
-              const Text(
-                "Your Plans",
-                style: TextStyle(
-                  fontSize: 34,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
+              /// ------------------------------------------------------------
+              Text("Your plans", style: AppTheme.h1),
               const SizedBox(height: 6),
-              const Text(
-                "Manage your fitness and nutrition.",
-                style: TextStyle(color: muted, fontSize: 16),
-              ),
-              const SizedBox(height: 22),
-
-              /// TABS
-              Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildTab("Fitness", 0, accent),
-                    const SizedBox(width: 40),
-                    _buildTab("Meals", 1, accent),
-                  ],
-                ),
+              Text(
+                "Create and manage your fitness and nutrition routines.",
+                style: AppTheme.bodyMuted,
               ),
 
-              /// MAIN CARD
+              const SizedBox(height: 28),
+
+              /// ------------------------------------------------------------
+              /// DOMAIN SWITCH (Fitness / Meals)
+              /// ------------------------------------------------------------
+              _PlanDomainSwitch(
+                activeIndex: _activeTab,
+                onChanged: (i) => setState(() => _activeTab = i),
+              ),
+
+              const SizedBox(height: 24),
+
+              /// ------------------------------------------------------------
+              /// PRIMARY ACTION CARD
+              /// ------------------------------------------------------------
               Container(
-                margin: const EdgeInsets.only(top: 18),
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color.fromRGBO(35, 39, 95, 0.9),
-                      Color.fromRGBO(28, 31, 70, 0.9),
-                    ],
-                  ),
-                  border: Border.all(color: cardEdge),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 30,
-                      offset: Offset(0, 8),
-                    ),
-                  ],
-                ),
+                padding: const EdgeInsets.all(20),
+                decoration: AppTheme.elevatedCard,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// CARD TITLE
                     Text(
-                      _activeTabIndex == 0
-                          ? "Create a New Fitness Plan"
-                          : "Create a New Meal Plan",
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                      isFitness
+                          ? "Build your fitness plan"
+                          : "Build your meal plan",
+                      style: AppTheme.h2,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      isFitness
+                          ? "Let AI personalize workouts or create your own routine."
+                          : "Get AI-generated meals or plan them manually.",
+                      style: AppTheme.bodyMuted,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    /// PRIMARY CTA
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: AppTheme.primaryButton,
+                        onPressed: () {
+                          _go(
+                            context,
+                            isFitness
+                                ? const InputPreference()
+                                : const MealInputPreference(),
+                          );
+                        },
+                        child: const Text(
+                          "Generate with AI ✨",
+                          style: TextStyle(fontWeight: FontWeight.w800),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
 
-                    /// ACTION BUTTONS
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 12,
-                      children: [
-                        _buildUseAIButton(btnColor),
-                        _buildManualButton(btnGhost),
-                      ],
+                    const SizedBox(height: 12),
+
+                    /// SECONDARY CTA
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        style: AppTheme.ghostButton,
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => isFitness
+                                  ? const ManualRoutineSetupScreen()
+                                  : const ManualMealSetupScreen(),
+                            ),
+                          );
+
+                          if (result != null) {
+                            debugPrint(
+                              isFitness
+                                  ? "Manual fitness plan: $result"
+                                  : "Manual meal plan: $result",
+                            );
+                          }
+                        },
+                        child: const Text(
+                          "Create manually",
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -116,106 +138,75 @@ class _PlansScreenState extends State<PlansScreen> {
       ),
     );
   }
+}
 
-  /// USE AI BUTTON
-  Widget _buildUseAIButton(Color btnColor) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) {
-              if (_activeTabIndex == 0) {
-                return const InputPreference();
-              }
-              return const MealInputPreference();
-            },
-          ),
-        );
-      },
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size(140, 48),
-        backgroundColor: btnColor,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        shadowColor: btnColor.withOpacity(0.35),
-        elevation: 6,
-      ),
-      child: const Text(
-        "Use AI ✨",
-        style: TextStyle(fontWeight: FontWeight.w800),
-      ),
-    );
-  }
+/// ----------------------------------------------------------------------
+/// DOMAIN SWITCH (Senior alternative to DIY tabs)
+/// ----------------------------------------------------------------------
+class _PlanDomainSwitch extends StatelessWidget {
+  final int activeIndex;
+  final ValueChanged<int> onChanged;
 
-  /// CREATE MANUALLY BUTTON
-  Widget _buildManualButton(Color btnGhost) {
-    return OutlinedButton(
-      onPressed: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) {
-              if (_activeTabIndex == 0) {
-                return const ManualRoutineSetupScreen();
-              }
-              return const ManualMealSetupScreen();
-            },
-          ),
-        );
+  const _PlanDomainSwitch({
+    required this.activeIndex,
+    required this.onChanged,
+  });
 
-        if (result != null) {
-          debugPrint(
-            _activeTabIndex == 0
-                ? 'Manual fitness routine: $result'
-                : 'Manual meal routine: $result',
-          );
-        }
-      },
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size(140, 48),
-        backgroundColor: btnGhost,
-        foregroundColor: Colors.white,
-        side: const BorderSide(color: Color(0xFF343A6A)),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      child: const Text(
-        "Create Manually",
-        style: TextStyle(fontWeight: FontWeight.w800),
-      ),
-    );
-  }
-
-  /// TAB BUILDER
-  Widget _buildTab(String label, int index, Color accent) {
-    final isActive = _activeTabIndex == index;
-
-    return GestureDetector(
-      onTap: () => setState(() => _activeTabIndex = index),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: AppTheme.card,
+      padding: const EdgeInsets.all(6),
+      child: Row(
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              color: isActive ? accent : const Color(0xFFAEB6DA),
-            ),
+          _TabItem(
+            label: "Fitness",
+            isActive: activeIndex == 0,
+            onTap: () => onChanged(0),
           ),
-          const SizedBox(height: 4),
-          Container(
-            height: 3,
-            width: 60,
-            decoration: BoxDecoration(
-              color: isActive ? accent : Colors.transparent,
-              borderRadius: BorderRadius.circular(999),
-            ),
+          _TabItem(
+            label: "Meals",
+            isActive: activeIndex == 1,
+            onTap: () => onChanged(1),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TabItem extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _TabItem({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isActive ? AppTheme.primary.withOpacity(.15) : null,
+            borderRadius: AppTheme.radiusMedium,
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: AppTheme.body.copyWith(
+              fontWeight: FontWeight.w700,
+              color: isActive ? AppTheme.primary : AppTheme.textGrey,
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
 
 class InputField extends StatelessWidget {
   final TextEditingController controller;
@@ -22,34 +23,30 @@ class InputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const cardColor = Color(0xFF232e40);
-    const borderColor = Color(0xFF333353);
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      validator: validator,
+      keyboardType: keyboardType,
+      style: AppTheme.body,
 
-    return Container(
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: borderColor, width: 2),
-      ),
-      child: TextFormField(
-        controller: controller,
-        obscureText: obscureText,
-        validator: validator,
-        keyboardType: keyboardType,
-        style: const TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          labelText: labelText,
-          hintText: hintText,
-          prefixIcon: prefixIcon != null
-              ? Icon(prefixIcon, color: Colors.white70)
-              : null,
-          hintStyle: const TextStyle(color: Colors.white70),
-          labelStyle: const TextStyle(color: Colors.white),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
-          ),
+      decoration: InputDecoration(
+        labelText: labelText,
+        hintText: hintText,
+
+        // 🎨 ICON
+        prefixIcon: prefixIcon != null
+            ? Icon(prefixIcon, color: AppTheme.textMuted)
+            : null,
+
+        // ✍️ TEXT STYLES
+        hintStyle: AppTheme.bodyMuted,
+        labelStyle: AppTheme.caption,
+
+        // 📏 SPACING
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 16,
         ),
       ),
     );

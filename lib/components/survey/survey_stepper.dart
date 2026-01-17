@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
 
 class SurveyStepper extends StatelessWidget {
   final String label;
@@ -18,84 +19,91 @@ class SurveyStepper extends StatelessWidget {
     this.unit,
   });
 
+  bool get _canDecrement => value > min;
+  bool get _canIncrement => value < max;
+
   @override
   Widget build(BuildContext context) {
-    const cardColor = Color(0xFF232340);
-    const borderColor = Color(0xFF333353);
-    const labelColor = Color(0xFFbcb7f6);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: labelColor, fontSize: 18)),
-        const SizedBox(height: 8),
+        /// LABEL
+        Text(label, style: AppTheme.h2),
+
+        const SizedBox(height: 10),
+
+        /// STEPPER CARD
         Container(
-          height: 52,
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(color: borderColor, width: 2),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: AppTheme.card,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _StepButton(icon: "-", onPressed: () => _handleChange(-1)),
-              const SizedBox(width: 6),
-              SizedBox(
-                width: 54,
-                child: Text(
-                  value.toString(),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
-                ),
+              _StepButton(
+                icon: Icons.remove,
+                enabled: _canDecrement,
+                onTap: () => onChanged(-1),
               ),
-              if (unit != null) ...[
-                const SizedBox(width: 6),
-                Text(
-                  unit!,
-                  style: const TextStyle(color: labelColor, fontSize: 16),
-                ),
-              ],
-              const SizedBox(width: 6),
-              _StepButton(icon: "+", onPressed: () => _handleChange(1)),
+
+              /// VALUE + UNIT
+              Row(
+                children: [
+                  Text(
+                    value.toString(),
+                    style: AppTheme.h1.copyWith(fontSize: 22),
+                  ),
+                  if (unit != null) ...[
+                    const SizedBox(width: 6),
+                    Text(unit!, style: AppTheme.bodyMuted),
+                  ],
+                ],
+              ),
+
+              _StepButton(
+                icon: Icons.add,
+                enabled: _canIncrement,
+                onTap: () => onChanged(1),
+              ),
             ],
           ),
         ),
       ],
     );
   }
-
-  void _handleChange(int delta) {
-    final newValue = value + delta;
-    if (newValue >= min && newValue <= max) {
-      onChanged(delta);
-    }
-  }
 }
 
+/// 🔹 Internal step button
 class _StepButton extends StatelessWidget {
-  final String icon;
-  final VoidCallback onPressed;
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool enabled;
 
-  const _StepButton({required this.icon, required this.onPressed});
+  const _StepButton({
+    required this.icon,
+    required this.onTap,
+    this.enabled = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    const btnColor = Color(0xFFbcb7f6);
-
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 38,
-        height: 38,
-        margin: const EdgeInsets.symmetric(horizontal: 3),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Center(
-          child: Text(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: AppTheme.radiusSmall,
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: enabled
+                ? AppTheme.primary.withOpacity(0.15)
+                : AppTheme.borderSoft,
+            borderRadius: AppTheme.radiusSmall,
+          ),
+          child: Icon(
             icon,
-            style: const TextStyle(color: btnColor, fontSize: 22),
+            color: enabled ? AppTheme.primary : AppTheme.textMuted,
+            size: 22,
           ),
         ),
       ),

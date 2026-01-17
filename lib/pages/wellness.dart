@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import "package:lumora/layouts/wellness/sleep_tracker.dart";
-import "package:lumora/layouts/wellness/mood_analysis.dart";
-import "package:lumora/layouts/wellness/wellness_bot.dart";
+import 'package:lumora/theme/app_theme.dart';
+import 'package:lumora/layouts/wellness/sleep_tracker.dart';
+import 'package:lumora/layouts/wellness/mood_analysis.dart';
+import 'package:lumora/layouts/wellness/wellness_bot.dart';
+import 'package:lumora/layouts/wellness/wellness_action_card.dart';
 
 class WellnessPage extends StatefulWidget {
   const WellnessPage({super.key});
@@ -11,275 +13,127 @@ class WellnessPage extends StatefulWidget {
 }
 
 class _WellnessPageState extends State<WellnessPage> {
-  int selectedMoodIndex = 4; // default 😁
-
+  int selectedMood = 4;
   final moods = ["😩", "😟", "😐", "😊", "😁"];
+
+  void _go(Widget page) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0f1431),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 24, 16, 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Title
-              const Text(
-                "Wellness Center",
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFFeef1ff),
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                "Check in with your feelings.",
-                style: TextStyle(
-                  color: Color(0xFFb7c0e0),
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Mood Picker Card
-              _buildCard(
-                title: "How are you feeling?",
-                child: SizedBox(
-                  width: double.infinity, // ✅ take full width of card
-                  child: Wrap(
-                    alignment: WrapAlignment.spaceBetween, // ✅ spread evenly
-                    runSpacing: 12,
+      backgroundColor: AppTheme.bg,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text("Wellness", style: AppTheme.h2),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// ------------------------------------------------------------
+            /// HERO – MOOD CHECK-IN
+            /// ------------------------------------------------------------
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: AppTheme.elevatedCard,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("How are you feeling right now?", style: AppTheme.h3),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: List.generate(moods.length, (i) {
-                      final isActive = selectedMoodIndex == i;
+                      final active = selectedMood == i;
                       return GestureDetector(
-                        onTap: () {
-                          setState(() => selectedMoodIndex = i);
-                        },
-                        child: Container(
-                          width: 56,
-                          height: 56,
+                        onTap: () => setState(() => selectedMood = i),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 52,
+                          height: 52,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF202657),
-                            borderRadius: BorderRadius.circular(14),
+                            color: active
+                                ? AppTheme.primary.withOpacity(.2)
+                                : AppTheme.cardBgAlt,
+                            borderRadius: AppTheme.radiusMedium,
                             border: Border.all(
-                              color: isActive
-                                  ? const Color(0xFFb787ff)
-                                  : const Color(0xFF313873),
-                              width: isActive ? 2 : 1,
+                              color: active
+                                  ? AppTheme.primary
+                                  : AppTheme.borderSoft,
+                              width: active ? 2 : 1,
                             ),
                           ),
                           alignment: Alignment.center,
                           child: Text(
                             moods[i],
-                            style: const TextStyle(fontSize: 28),
+                            style: const TextStyle(fontSize: 26),
                           ),
                         ),
                       );
                     }),
                   ),
-                ),
+                ],
               ),
+            ),
 
-              // Mood Analysis Card
-              _buildCard(
-                title: "Recent Mood Analysis",
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Click ‘Analyze’ to get an AI summary of recent moods.",
-                      style: TextStyle(color: Color(0xFFb7c0e0)),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF8b6bff),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        shadowColor: const Color(0xFF8b6bff).withOpacity(.35),
-                        elevation: 6,
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MoodInsightsPage(),
-                          ),
-                        );
-                      },
+            const SizedBox(height: 28),
 
-                      child: const Center(
-                        child: Text(
-                          "Analyze with AI ✨",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFFf4edff),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            /// ------------------------------------------------------------
+            /// MOOD INSIGHTS
+            /// ------------------------------------------------------------
+            WellnessActionCard(
+              title: "Mood insights",
+              subtitle: "Understand your emotional patterns",
+              cta: "Analyze with AI",
+              icon: Icons.insights,
+              onTap: () => _go(const MoodInsightsPage()),
+            ),
 
-              // Sleep Tracker Card ⬇️
-              _buildCard(
-                title: "Sleep Tracker 😴",
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Track your sleep patterns, understand your rest cycles, and improve your bedtime habits over time.",
-                      style: TextStyle(
-                        color: Color(0xFFb7c0e0),
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF8b6bff),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        shadowColor: const Color(0xFF8b6bff).withOpacity(.35),
-                        elevation: 6,
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SleepTrackerPage(),
-                          ),
-                        );
-                      },
+            /// ------------------------------------------------------------
+            /// SLEEP
+            /// ------------------------------------------------------------
+            WellnessActionCard(
+              title: "Sleep tracker",
+              subtitle: "Build better rest habits",
+              cta: "Log sleep",
+              icon: Icons.bedtime_rounded,
+              onTap: () => _go(const SleepTrackerPage()),
+            ),
 
-                      child: const Center(
-                        child: Text(
-                          "Track My Sleep",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFFf4edff),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            /// ------------------------------------------------------------
+            /// SUPPORT
+            /// ------------------------------------------------------------
+            WellnessActionCard(
+              title: "Talk it out",
+              subtitle: "Chat with your wellness assistant",
+              cta: "Start conversation",
+              icon: Icons.chat_bubble_outline,
+              onTap: () => _go(const WellnessChatPage()),
+            ),
 
-              // Support Card
-              _buildCard(
-                title: "AetherWell Support",
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Need to speak out?",
-                      style: TextStyle(color: Color(0xFFb7c0e0)),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF8b6bff),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const WellnessChatPage(),
-                          ),
-                        );
-                      },
+            const SizedBox(height: 24),
 
-                      child: const Center(
-                        child: Text(
-                          "Talk with our wellness bot",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFFf4edff),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 14),
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    // TODO: Meditation page
-                  },
-                  child: const Text(
-                    "Looking for meditation?",
-                    style: TextStyle(
-                      color: Color(0xFFb787ff),
-                      fontWeight: FontWeight.w800,
-                    ),
+            /// ------------------------------------------------------------
+            /// SOFT CTA
+            /// ------------------------------------------------------------
+            Center(
+              child: TextButton(
+                onPressed: () {},
+                child: Text(
+                  "Looking for meditation?",
+                  style: AppTheme.body.copyWith(
+                    color: AppTheme.primary,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCard({required String title, required Widget child}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color.fromARGB(230, 35, 39, 95),
-            Color.fromARGB(230, 28, 31, 70),
+            ),
           ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Color(0xFF262a59)),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 30,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 12),
-          child,
-        ],
       ),
     );
   }

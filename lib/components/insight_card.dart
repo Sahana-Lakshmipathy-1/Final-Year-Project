@@ -1,60 +1,81 @@
 import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
 
 class InsightCard extends StatelessWidget {
   final String title;
   final String description;
   final IconData icon;
-  final Color color;
-  final VoidCallback onTap; // required always
+  final Color accentColor;
+  final VoidCallback onTap;
 
   const InsightCard({
     super.key,
     required this.title,
     required this.description,
     required this.icon,
-    required this.color,
+    required this.accentColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        color: color.withOpacity(0.1),
-        child: Padding(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppTheme.radiusLarge,
+        child: Container(
           padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppTheme.cardBg,
+            borderRadius: AppTheme.radiusLarge,
+            border: Border.all(
+              color: accentColor.withOpacity(0.35),
+            ),
+          ),
           child: Row(
             children: [
-              Icon(icon, size: 40, color: color),
+              /// ICON
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: accentColor.withOpacity(0.15),
+                  borderRadius: AppTheme.radiusMedium,
+                ),
+                child: Icon(
+                  icon,
+                  color: accentColor,
+                  size: 28,
+                ),
+              ),
+
               const SizedBox(width: 16),
+
+              /// TEXT
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: color,
+                      style: AppTheme.h2.copyWith(
+                        color: accentColor,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
+                      style: AppTheme.bodyMuted,
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right),
+
+              /// CHEVRON
+              Icon(
+                Icons.chevron_right,
+                color: AppTheme.textMuted,
+              ),
             ],
           ),
         ),

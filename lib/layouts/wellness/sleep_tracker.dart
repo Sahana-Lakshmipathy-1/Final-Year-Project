@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
 
 class SleepTrackerPage extends StatefulWidget {
   const SleepTrackerPage({super.key});
@@ -10,12 +11,12 @@ class SleepTrackerPage extends StatefulWidget {
 class _SleepTrackerPageState extends State<SleepTrackerPage> {
   final _formKey = GlobalKey<FormState>();
 
-  TimeOfDay? _bedtime;
-  TimeOfDay? _wakeTime;
-  String _sleepQuality = "";
-  String _notes = "";
+  TimeOfDay? bedtime;
+  TimeOfDay? wakeTime;
+  String? sleepQuality;
+  String notes = "";
 
-  final List<String> qualityOptions = [
+  final qualityOptions = const [
     "😴 Excellent",
     "😊 Good",
     "😐 Average",
@@ -23,175 +24,131 @@ class _SleepTrackerPageState extends State<SleepTrackerPage> {
     "😩 Very Poor",
   ];
 
-  Future<void> _pickTime({required bool isBedtime}) async {
+  Future<void> _pickTime(bool isBedtime) async {
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-      helpText: isBedtime ? 'Select Bedtime' : 'Select Wake Time',
+      helpText: isBedtime ? "Select bedtime" : "Select wake-up time",
     );
+
     if (picked != null) {
       setState(() {
         if (isBedtime) {
-          _bedtime = picked;
+          bedtime = picked;
         } else {
-          _wakeTime = picked;
+          wakeTime = picked;
         }
       });
     }
   }
 
-  void _submitForm() {
+  void _saveSleep() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Sleep data saved successfully 💤"),
+          content: Text("Sleep log saved 💤"),
           behavior: SnackBarBehavior.floating,
         ),
       );
-      // TODO: Store or send sleep data to backend
+
+      // TODO: Persist sleep data
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    const Color bg = Color(0xFF0F1431);
-    const Color card = Color(0xFF1E2248);
-    const Color accent = Color(0xFFB787FF);
-    const Color muted = Color(0xFFB7C0E0);
-    const Color edge = Color(0xFF2C315C);
-
     return Scaffold(
-      backgroundColor: bg,
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF181C3A),
-        title: const Text(
-          "Sleep Tracker 😴",
-          style: TextStyle(fontWeight: FontWeight.w800),
-        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: AppTheme.primary),
+        title: Text("Sleep Tracker", style: AppTheme.h2),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 40),
         child: Form(
           key: _formKey,
           child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: card.withOpacity(0.9),
-              border: Border.all(color: edge),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
+            decoration: AppTheme.elevatedCard,
+            padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Track Your Sleep",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
+                Text("How did you sleep?", style: AppTheme.h1),
+                const SizedBox(height: 6),
+                Text(
+                  "Log your sleep to help the AI understand your energy and mood patterns.",
+                  style: AppTheme.bodyMuted,
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  "Record your bedtime, wake-up time, and how you felt upon waking.",
-                  style: TextStyle(color: muted),
-                ),
-                const SizedBox(height: 20),
 
-                // Bedtime Picker
-                _buildField(
+                const SizedBox(height: 24),
+
+                _Field(
                   label: "Bedtime",
-                  child: GestureDetector(
-                    onTap: () => _pickTime(isBedtime: true),
-                    child: _buildInputBox(
-                      text: _bedtime != null
-                          ? _bedtime!.format(context)
-                          : "Select bedtime",
-                    ),
+                  child: _TimeField(
+                    value: bedtime,
+                    placeholder: "Select bedtime",
+                    onTap: () => _pickTime(true),
                   ),
                 ),
 
-                // Wake Time Picker
-                _buildField(
+                _Field(
                   label: "Wake-up time",
-                  child: GestureDetector(
-                    onTap: () => _pickTime(isBedtime: false),
-                    child: _buildInputBox(
-                      text: _wakeTime != null
-                          ? _wakeTime!.format(context)
-                          : "Select wake-up time",
-                    ),
+                  child: _TimeField(
+                    value: wakeTime,
+                    placeholder: "Select wake-up time",
+                    onTap: () => _pickTime(false),
                   ),
                 ),
 
-                // Sleep Quality Dropdown
-                _buildField(
-                  label: "How was your sleep?",
+                _Field(
+                  label: "Sleep quality",
                   child: DropdownButtonFormField<String>(
-                    dropdownColor: const Color(0xFF14183A),
+                    value: sleepQuality,
+                    dropdownColor: AppTheme.cardBg,
+                    style: AppTheme.body,
                     decoration: _inputDecoration(),
-                    value: _sleepQuality.isEmpty ? null : _sleepQuality,
                     items: qualityOptions
                         .map(
                           (q) => DropdownMenuItem(
                             value: q,
-                            child: Text(
-                              q,
-                              style: const TextStyle(color: Colors.white),
-                            ),
+                            child: Text(q),
                           ),
                         )
                         .toList(),
-                    onChanged: (value) {
-                      setState(() => _sleepQuality = value ?? "");
-                    },
-                    validator: (value) =>
-                        value == null ? "Please select one" : null,
+                    onChanged: (v) => setState(() => sleepQuality = v),
+                    validator: (v) =>
+                        v == null ? "Please select a quality" : null,
                   ),
                 ),
 
-                // Notes Textarea
-                _buildField(
-                  label: "Notes or dreams (optional)",
+                _Field(
+                  label: "Notes (optional)",
                   child: TextFormField(
                     minLines: 3,
                     maxLines: 6,
-                    style: const TextStyle(color: Colors.white),
+                    style: AppTheme.body,
                     decoration: _inputDecoration().copyWith(
                       hintText:
-                          "Describe how you felt waking up, any dreams, or interruptions...",
+                          "Dreams, interruptions, how you felt waking up…",
                     ),
-                    onSaved: (val) => _notes = val ?? "",
+                    onSaved: (v) => notes = v ?? "",
                   ),
                 ),
 
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: accent,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 8,
-                  ),
-                  onPressed: _submitForm,
-                  child: const Center(
-                    child: Text(
+                const SizedBox(height: 28),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: AppTheme.primaryButton,
+                    onPressed: _saveSleep,
+                    child: const Text(
                       "Save Sleep Log",
-                      style: TextStyle(
-                        color: Color(0xFF1A1034),
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.w800),
                     ),
                   ),
                 ),
@@ -199,45 +156,6 @@ class _SleepTrackerPageState extends State<SleepTrackerPage> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildField({required String label, required Widget child}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFFD8DCFF),
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
-            ),
-          ),
-          const SizedBox(height: 8),
-          child,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInputBox({required String text}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF14183A),
-        border: Border.all(color: const Color(0xFF2B2F58)),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(text, style: const TextStyle(color: Colors.white)),
-          const Icon(Icons.schedule, color: Color(0xFFB7C0E0)),
-        ],
       ),
     );
   }
@@ -245,21 +163,87 @@ class _SleepTrackerPageState extends State<SleepTrackerPage> {
   InputDecoration _inputDecoration() {
     return InputDecoration(
       filled: true,
-      fillColor: const Color(0xFF0F1331),
-      contentPadding: const EdgeInsets.all(12),
+      fillColor: AppTheme.cardBg,
+      contentPadding: const EdgeInsets.all(14),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF2B2F58)),
+        borderRadius: AppTheme.radiusSmall,
+        borderSide: BorderSide(color: AppTheme.borderSoft),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF2B2F58)),
+        borderRadius: AppTheme.radiusSmall,
+        borderSide: BorderSide(color: AppTheme.borderSoft),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFFB787FF), width: 1.5),
+        borderRadius: AppTheme.radiusSmall,
+        borderSide: BorderSide(color: AppTheme.primary, width: 1.4),
       ),
-      hintStyle: const TextStyle(color: Color(0xFF9FA8D2), fontSize: 14),
+      hintStyle: AppTheme.caption,
+    );
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               HELPER WIDGETS                               */
+/* -------------------------------------------------------------------------- */
+
+class _Field extends StatelessWidget {
+  final String label;
+  final Widget child;
+
+  const _Field({required this.label, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: AppTheme.caption.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _TimeField extends StatelessWidget {
+  final TimeOfDay? value;
+  final String placeholder;
+  final VoidCallback onTap;
+
+  const _TimeField({
+    required this.value,
+    required this.placeholder,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppTheme.cardBg,
+          borderRadius: AppTheme.radiusSmall,
+          border: Border.all(color: AppTheme.borderSoft),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              value != null ? value!.format(context) : placeholder,
+              style: AppTheme.body,
+            ),
+            Icon(Icons.schedule, color: AppTheme.textMuted),
+          ],
+        ),
+      ),
     );
   }
 }

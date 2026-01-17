@@ -1,170 +1,118 @@
 import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
+import 'package:lumora/pages/insights.dart';
+import 'package:lumora/pages/plans.dart';
+import 'package:lumora/pages/tracker.dart';
+import 'package:lumora/pages/wellness.dart';
 
-class HomeScreen extends StatefulWidget {
+import 'package:lumora/layouts/home/today_focus.dart';
+import 'package:lumora/layouts/home/progress.dart';
+import 'package:lumora/layouts/home/smart_action.dart';
+import 'package:lumora/layouts/home/explore_icon.dart';
+import 'package:lumora/layouts/home/today_meal.dart';
+
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
+  void _go(BuildContext context, Widget page) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  }
 
-class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    const bgColor = Color(0xFF0D0D25);
-    const labelColor = Color(0xFFEFEFFF);
-
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: AppTheme.bg,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Greeting
-              const Text(
-                "Good Evening, Sahana!",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: labelColor,
-                ),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                "Here's your summary for today.",
-                style: TextStyle(color: Colors.white70, fontSize: 16),
-              ),
+              /// GREETING
+              Text("Good evening, Sahana", style: AppTheme.h1),
+              const SizedBox(height: 6),
+              Text("Let’s take care of you today.", style: AppTheme.bodyMuted),
+
               const SizedBox(height: 24),
 
-              // Today’s Workout Card
-              _buildCard(
-                title: "Today's Workout",
-                subtitle: "No active fitness plan.",
-                buttonText: "Go to Plans",
+              /// TODAY FOCUS
+              TodayFocusCard(
+                title: "Today’s Workout",
+                subtitle: "Upper body • 45 min",
+                cta: "Start now",
+                onTap: () => _go(context, const TrackerScreen()),
               ),
+
               const SizedBox(height: 16),
 
-              // Mood + Emergency Row
+              TodayMealCard(
+                title: "Today’s Meals",
+                subtitle: "3 meals planned • 1,850 kcal",
+                cta: "View meal plan",
+                onTap: () => _go(context, const TrackerScreen()),
+              ),
+
+              const SizedBox(height: 20),
+
+              /// PROGRESS
+              const ProgressStrip(),
+
+              const SizedBox(height: 28),
+
+              /// SMART ACTIONS
+              Text("Quick actions", style: AppTheme.sectionTitle),
+              const SizedBox(height: 12),
+
               Row(
                 children: [
                   Expanded(
-                    child: _buildCard(
-                      title: "Mood Check-in",
-                      subtitle: "No mood logged yet today.",
-                      buttonText: "Log Mood",
+                    child: SmartActionCard(
+                      icon: Icons.self_improvement,
+                      title: "Mood check-in",
+                      subtitle: "How are you feeling?",
+                      onTap: () => _go(context, const WellnessPage()),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 14),
                   Expanded(
-                    child: _buildCard(
-                      title: "Emergency",
-                      subtitle: "Access SOS and first aid.",
-                      buttonText: "SOS Center",
-                      buttonColor: Colors.red,
+                    child: SmartActionCard(
+                      icon: Icons.insights,
+                      title: "First Aid",
+                      subtitle: "Talk to our first bot",
+                      onTap: () => _go(context, const TrackerScreen()),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
 
-              // Quick Actions
-              const Text(
-                "Quick Actions",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: labelColor,
-                ),
-              ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 28),
+
+              /// EXPLORE
+              Text("Explore", style: AppTheme.sectionTitle),
+              const SizedBox(height: 14),
+
               Row(
                 children: [
-                  Expanded(
-                    child: _buildActionCard(
-                      icon: Icons.bar_chart,
-                      label: "View Insights",
-                    ),
+                  ExploreIcon(
+                    icon: Icons.calendar_month,
+                    label: "Plans",
+                    onTap: () => _go(context, const PlansScreen()),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildActionCard(
-                      icon: Icons.calendar_today,
-                      label: "Manage Plans",
-                    ),
+                  ExploreIcon(
+                    icon: Icons.favorite,
+                    label: "Wellness",
+                    onTap: () => _go(context, const WellnessPage()),
+                  ),
+                  ExploreIcon(
+                    icon: Icons.bar_chart,
+                    label: "Stats",
+                    onTap: () => _go(context, const InsightsScreen()),
                   ),
                 ],
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildCard({
-    required String title,
-    required String subtitle,
-    required String buttonText,
-    Color buttonColor = const Color(0xFF232E40),
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF151533),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(subtitle, style: const TextStyle(color: Colors.white70)),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: buttonColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            ),
-            onPressed: () {},
-            child: Text(buttonText),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionCard({required IconData icon, required String label}) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF151533),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 32, color: Colors.white),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-          ),
-        ],
       ),
     );
   }

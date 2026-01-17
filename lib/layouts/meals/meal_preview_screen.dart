@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
 
 class MealPreviewScreen extends StatefulWidget {
   const MealPreviewScreen({super.key});
@@ -17,7 +18,7 @@ class _MealPreviewScreenState extends State<MealPreviewScreen> {
       'tags': ['Vegetarian', 'High Fiber', 'Easy'],
       'calories': '350 kcal',
       'description':
-          'A nutritious oats-based breakfast loaded with vegetables for sustained energy.',
+          'Nutritious oats breakfast with vegetables for sustained energy.',
       'selected': true,
     },
     {
@@ -25,10 +26,9 @@ class _MealPreviewScreenState extends State<MealPreviewScreen> {
       'title': 'Grilled Paneer Bowl',
       'icon': '🧀',
       'mealType': 'Lunch',
-      'tags': ['High Protein', 'Vegetarian', 'Balanced'],
+      'tags': ['High Protein', 'Balanced'],
       'calories': '520 kcal',
-      'description':
-          'Grilled paneer served with brown rice and sautéed vegetables.',
+      'description': 'Grilled paneer with brown rice and sautéed vegetables.',
       'selected': true,
     },
     {
@@ -36,10 +36,9 @@ class _MealPreviewScreenState extends State<MealPreviewScreen> {
       'title': 'Fruit & Nut Yogurt',
       'icon': '🍓',
       'mealType': 'Snack',
-      'tags': ['Quick', 'Probiotic', 'Light'],
+      'tags': ['Quick', 'Light'],
       'calories': '220 kcal',
-      'description':
-          'Fresh fruits mixed with yogurt and nuts for a light, refreshing snack.',
+      'description': 'Fresh fruits mixed with yogurt and nuts.',
       'selected': true,
     },
     {
@@ -47,10 +46,9 @@ class _MealPreviewScreenState extends State<MealPreviewScreen> {
       'title': 'Dal, Roti & Veg Curry',
       'icon': '🍛',
       'mealType': 'Dinner',
-      'tags': ['Vegetarian', 'Balanced', 'Comfort'],
+      'tags': ['Comfort', 'Balanced'],
       'calories': '480 kcal',
-      'description':
-          'A classic Indian dinner with dal, whole wheat roti, and seasonal vegetables.',
+      'description': 'Classic Indian dinner with dal, roti and vegetables.',
       'selected': false,
     },
   ];
@@ -68,17 +66,13 @@ class _MealPreviewScreenState extends State<MealPreviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const bg = Color(0xFF0F1431);
-    const card = Color(0xFF181C3A);
-    const accent = Color(0xFFB787FF);
-    const muted = Color(0xFFB7C0E0);
-    const success = Color(0xFF4ADE80);
-    const edge = Color(0xFF2C315C);
-
     final selectedCount = meals.where((m) => m['selected']).length;
 
     return Scaffold(
-      backgroundColor: bg,
+      backgroundColor: AppTheme.bg,
+      appBar: AppBar(
+        title: const Text("Your Meal Plan"),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -89,68 +83,33 @@ class _MealPreviewScreenState extends State<MealPreviewScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Your Meal Plan ✨',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: accent,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      '$selectedCount meals',
-                      style: const TextStyle(
-                        color: Color(0xFF1A1034),
-                        fontWeight: FontWeight.w800,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
+                  Text("Review Meals ✨", style: AppTheme.h1),
+                  _countBadge("$selectedCount meals"),
                 ],
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Review and customize your AI-generated meals. Drag to reorder, toggle to add/remove.',
-                style: TextStyle(color: muted, fontSize: 13),
+              Text(
+                "Customize your AI-generated meals. Toggle or reorder as needed.",
+                style: AppTheme.bodyMuted,
               ),
 
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
 
               /// QUICK ACTIONS
               Container(
+                decoration: AppTheme.card,
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF23275F),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: edge),
-                ),
                 child: Row(
                   children: [
-                    const Text(
-                      'Quick Actions',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    Text("Quick actions", style: AppTheme.body),
                     const Spacer(),
-                    _chip('Add All', accent, Colors.black, addAll),
+                    _actionChip("Add all", AppTheme.primary, addAll),
                     const SizedBox(width: 8),
-                    _chip(
-                      'Clear All',
-                      Colors.transparent,
-                      Colors.redAccent,
+                    _actionChip(
+                      "Clear",
+                      AppTheme.danger,
                       clearAll,
-                      border: Colors.redAccent,
+                      outline: true,
                     ),
                   ],
                 ),
@@ -170,64 +129,40 @@ class _MealPreviewScreenState extends State<MealPreviewScreen> {
                     });
                   },
                   itemBuilder: (context, index) {
-                    final m = meals[index];
+                    final meal = meals[index];
                     return ListTile(
-                      key: ValueKey(m['id']),
+                      key: ValueKey(meal['id']),
                       contentPadding: EdgeInsets.zero,
                       title: _MealCard(
-                        meal: m,
-                        onToggle: () => toggleMeal(m['id']),
+                        meal: meal,
+                        onToggle: () => toggleMeal(meal['id']),
                       ),
                       trailing: const Icon(
                         Icons.drag_handle_rounded,
-                        color: muted,
+                        color: AppTheme.textMuted,
                       ),
                     );
                   },
                 ),
               ),
 
-              /// FOOTER BUTTONS
+              /// FOOTER CTA
               Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: accent,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () {},
-                      child: const Text(
-                        'Confirm & Continue',
-                        style: TextStyle(
-                          color: Color(0xFF1A1034),
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
+                    child: OutlinedButton(
+                      style: AppTheme.ghostButton,
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Back"),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: const Color(0xFF242953),
-                        side: const BorderSide(color: Color(0xFF3A3F72)),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text(
-                        'Back',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                    flex: 2,
+                    child: ElevatedButton(
+                      style: AppTheme.primaryButton,
+                      onPressed: () {},
+                      child: const Text("Confirm & Continue"),
                     ),
                   ),
                 ],
@@ -239,54 +174,84 @@ class _MealPreviewScreenState extends State<MealPreviewScreen> {
     );
   }
 
-  Widget _chip(
+  /// ───────── UI HELPERS ─────────
+
+  Widget _countBadge(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTheme.primary,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: AppTheme.caption.copyWith(
+          color: AppTheme.bg,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
+  Widget _actionChip(
     String label,
-    Color bg,
     Color color,
     VoidCallback onTap, {
-    Color? border,
+    bool outline = false,
   }) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: bg,
-          border: Border.all(color: border ?? Colors.transparent),
+          color: outline ? Colors.transparent : color.withOpacity(0.15),
+          border: Border.all(color: color),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
           label,
-          style: TextStyle(fontWeight: FontWeight.w700, color: color),
+          style: AppTheme.caption.copyWith(
+            color: color,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );
   }
 }
 
-/// ---------------- MEAL CARD ----------------
+/// ───────────────── MEAL CARD ─────────────────
 
 class _MealCard extends StatelessWidget {
   final Map<String, dynamic> meal;
   final VoidCallback onToggle;
 
-  const _MealCard({required this.meal, required this.onToggle});
+  const _MealCard({
+    required this.meal,
+    required this.onToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
-    const muted = Color(0xFFB7C0E0);
-    const success = Color(0xFF4ADE80);
-    const edge = Color(0xFF2C315C);
+    final bool selected = meal['selected'];
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF23275F), Color(0xFF181B40)],
+          colors: [
+            AppTheme.cardBgAlt,
+            AppTheme.cardBg,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: meal['selected'] ? success : edge),
+        borderRadius: AppTheme.radiusMedium,
+        border: Border.all(
+          color: selected ? AppTheme.success : AppTheme.borderSoft,
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,8 +262,8 @@ class _MealCard extends StatelessWidget {
             height: 64,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: const Color(0xFF14183A),
-              borderRadius: BorderRadius.circular(10),
+              color: AppTheme.cardBgAlt,
+              borderRadius: AppTheme.radiusSmall,
             ),
             child: Text(meal['icon'], style: const TextStyle(fontSize: 28)),
           ),
@@ -309,35 +274,25 @@ class _MealCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  meal['title'],
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                  ),
-                ),
+                Text(meal['title'], style: AppTheme.h2),
                 const SizedBox(height: 4),
                 Wrap(
                   spacing: 6,
                   runSpacing: 4,
                   children: [
-                    _tag(meal['mealType'], Colors.orangeAccent),
+                    _tag(meal['mealType'], AppTheme.warning),
                     ...meal['tags'].map<Widget>(
-                      (t) => _tag(t, muted),
+                      (t) => _tag(t, AppTheme.textMuted),
                     ),
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  meal['description'],
-                  style: const TextStyle(color: muted, fontSize: 13),
-                ),
+                Text(meal['description'], style: AppTheme.bodyMuted),
                 const SizedBox(height: 4),
                 Text(
                   meal['calories'],
-                  style: const TextStyle(
-                    color: Colors.greenAccent,
+                  style: AppTheme.caption.copyWith(
+                    color: AppTheme.success,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -352,12 +307,12 @@ class _MealCard extends StatelessWidget {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: meal['selected'] ? success : const Color(0xFF14183A),
-                borderRadius: BorderRadius.circular(12),
+                color: selected ? AppTheme.success : AppTheme.cardBgAlt,
+                borderRadius: AppTheme.radiusSmall,
               ),
               child: Icon(
-                meal['selected'] ? Icons.check_rounded : Icons.add_rounded,
-                color: meal['selected'] ? const Color(0xFF1A1034) : muted,
+                selected ? Icons.check_rounded : Icons.add_rounded,
+                color: selected ? AppTheme.bg : AppTheme.textMuted,
               ),
             ),
           ),
@@ -370,15 +325,14 @@ class _MealCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFF262B56),
+        color: AppTheme.cardBgAlt,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         label,
-        style: TextStyle(
+        style: AppTheme.caption.copyWith(
           color: color,
           fontWeight: FontWeight.w700,
-          fontSize: 11,
         ),
       ),
     );

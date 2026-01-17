@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
-  final Function(int) onTap;
+  final ValueChanged<int> onTap;
 
   const BottomNavBar({
     super.key,
@@ -12,35 +13,77 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: onTap,
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: const Color(0xFF12122A),
-      selectedItemColor: const Color(0xFFB37CFF),
-      unselectedItemColor: Colors.white70,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_outlined),
-          label: "Home",
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.cardBg,
+        border: Border(
+          top: BorderSide(color: AppTheme.borderSoft),
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.access_time),
-          label: "Tracker",
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.35),
+            blurRadius: 20,
+            offset: const Offset(0, -6),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: onTap,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+
+        selectedItemColor: AppTheme.primary,
+        unselectedItemColor: AppTheme.textMuted,
+
+        selectedLabelStyle: AppTheme.caption.copyWith(
+          fontWeight: FontWeight.w600,
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.event_note),
-          label: "Plans",
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.insights),
-          label: "Insights",
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.favorite_outline),
-          label: "Wellness",
-        ),
-      ],
+        unselectedLabelStyle: AppTheme.caption,
+
+        // ❌ const REMOVED here
+        items: [
+          _NavItem(
+            icon: Icons.home_outlined,
+            activeIcon: Icons.home,
+            label: "Home",
+          ),
+          _NavItem(
+            icon: Icons.access_time_outlined,
+            activeIcon: Icons.access_time_filled,
+            label: "Tracker",
+          ),
+          _NavItem(
+            icon: Icons.event_note_outlined,
+            activeIcon: Icons.event_note,
+            label: "Plans",
+          ),
+          _NavItem(
+            icon: Icons.insights_outlined,
+            activeIcon: Icons.insights,
+            label: "Insights",
+          ),
+          _NavItem(
+            icon: Icons.favorite_outline,
+            activeIcon: Icons.favorite,
+            label: "Wellness",
+          ),
+        ],
+      ),
     );
   }
+}
+
+/// Internal nav item helper
+class _NavItem extends BottomNavigationBarItem {
+  _NavItem({
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+  }) : super(
+         icon: Icon(icon),
+         activeIcon: Icon(activeIcon),
+         label: label,
+       );
 }

@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
 
 class SavedMealsPreview extends StatelessWidget {
   const SavedMealsPreview({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const bg = Color(0xFF0F1431);
-    const card = Color(0xFF181C3A);
-    const accent = Color(0xFFB787FF);
-    const muted = Color(0xFFB7C0E0);
-    const edge = Color(0xFF2C315C);
-
     final weekMeals = [
       {
         'day': 'Monday',
@@ -49,11 +44,7 @@ class SavedMealsPreview extends StatelessWidget {
             'name': 'Paneer Bhurji & Toast',
             'meta': 'Breakfast • 400 kcal',
           },
-          {
-            'icon': '🍚',
-            'name': 'Rajma Rice',
-            'meta': 'Lunch • 560 kcal',
-          },
+          {'icon': '🍚', 'name': 'Rajma Rice', 'meta': 'Lunch • 560 kcal'},
           {
             'icon': '🥛',
             'name': 'Protein Smoothie',
@@ -69,17 +60,9 @@ class SavedMealsPreview extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: bg,
-
-      /// APP BAR
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF181C3A),
-        elevation: 0,
-        leading: const BackButton(color: Colors.white),
-        title: const Text(
-          'Your Plan ✨',
-          style: TextStyle(fontWeight: FontWeight.w800),
-        ),
+        title: const Text("Meal Plan"),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 12),
@@ -88,7 +71,6 @@ class SavedMealsPreview extends StatelessWidget {
         ],
       ),
 
-      /// BODY
       body: Stack(
         children: [
           ListView(
@@ -96,31 +78,20 @@ class SavedMealsPreview extends StatelessWidget {
             children: [
               /// AI TWEAKS
               Container(
+                decoration: AppTheme.card,
                 padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: card,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: edge),
-                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'AI Tweaks',
-                      style: TextStyle(
-                        color: muted,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
+                    Text("AI Tweaks", style: AppTheme.caption),
+                    const SizedBox(height: 10),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: const [
-                          _TweakChip('🔥 Increase protein'),
-                          _TweakChip('🥗 More vegetables'),
-                          _TweakChip('⚖️ Lower calories'),
+                          _TweakChip("🔥 Increase protein"),
+                          _TweakChip("🥗 More vegetables"),
+                          _TweakChip("⚖️ Lower calories"),
                         ],
                       ),
                     ),
@@ -130,19 +101,19 @@ class SavedMealsPreview extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              /// WEEKLY MEALS
+              /// WEEKLY DAYS
               ...weekMeals.map((day) => _MealDayCard(day)).toList(),
             ],
           ),
 
-          /// FLOATING ADD BUTTON
+          /// FLOATING ADD
           Positioned(
             bottom: 110,
             right: 20,
             child: FloatingActionButton(
-              backgroundColor: accent,
+              backgroundColor: AppTheme.primary,
               onPressed: () {},
-              child: const Icon(Icons.add, color: Color(0xFF1A1034)),
+              child: Icon(Icons.add, color: AppTheme.bg),
             ),
           ),
         ],
@@ -152,32 +123,20 @@ class SavedMealsPreview extends StatelessWidget {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF181C3A),
-          border: Border(top: BorderSide(color: edge)),
+          color: AppTheme.cardBg,
+          border: Border(top: BorderSide(color: AppTheme.borderSoft)),
         ),
         child: Row(
           children: [
-            _bottomButton('🔀 Shuffle'),
+            _secondaryButton("🔀 Shuffle"),
             const SizedBox(width: 8),
-            _bottomButton('💾 Save'),
+            _secondaryButton("💾 Save"),
             const SizedBox(width: 8),
             Expanded(
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: accent,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
+                style: AppTheme.primaryButton,
                 onPressed: () {},
-                child: const Text(
-                  '🍽 Start Plan',
-                  style: TextStyle(
-                    color: Color(0xFF1A1034),
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
+                child: const Text("🍽 Start Plan"),
               ),
             ),
           ],
@@ -186,24 +145,23 @@ class SavedMealsPreview extends StatelessWidget {
     );
   }
 
-  Widget _bottomButton(String label) {
+  Widget _secondaryButton(String label) {
     return Expanded(
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF262B56),
+          backgroundColor: AppTheme.cardBgAlt,
+          foregroundColor: AppTheme.textWhite,
+          shape: RoundedRectangleBorder(borderRadius: AppTheme.radiusMedium),
           padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
         ),
         onPressed: () {},
-        child: Text(label),
+        child: Text(label, style: AppTheme.caption),
       ),
     );
   }
 }
 
-/// ---------------- DAY CARD ----------------
+/// ───────────────── DAY CARD ─────────────────
 
 class _MealDayCard extends StatelessWidget {
   final Map<String, dynamic> day;
@@ -211,27 +169,18 @@ class _MealDayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const card = Color(0xFF181C3A);
-    const accent = Color(0xFFB787FF);
-    const muted = Color(0xFFB7C0E0);
-    const edge = Color(0xFF2C315C);
-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: card,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: edge),
-      ),
+      decoration: AppTheme.elevatedCard,
       child: Column(
         children: [
           /// HEADER
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: accent.withOpacity(0.12),
+              color: AppTheme.primary.withOpacity(0.12),
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(18),
+                top: Radius.circular(24),
               ),
             ),
             child: Row(
@@ -239,44 +188,17 @@ class _MealDayCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      day['day'],
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                      ),
-                    ),
+                    Text(day['day'], style: AppTheme.h2),
                     const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: accent,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        day['type'],
-                        style: const TextStyle(
-                          color: Color(0xFF1A1034),
-                          fontWeight: FontWeight.w800,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
+                    _pill(day['type']),
                   ],
                 ),
-                Text(
-                  day['calories'],
-                  style: const TextStyle(color: muted),
-                ),
+                Text(day['calories'], style: AppTheme.caption),
               ],
             ),
           ),
 
-          /// MEALS LIST
+          /// MEALS
           ...day['meals'].map<Widget>((meal) {
             return ListTile(
               contentPadding: const EdgeInsets.symmetric(
@@ -288,36 +210,43 @@ class _MealDayCard extends StatelessWidget {
                 height: 48,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF14183A),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFF2C315C)),
+                  color: AppTheme.cardBgAlt,
+                  borderRadius: AppTheme.radiusSmall,
                 ),
-                child: Text(
-                  meal['icon'],
-                  style: const TextStyle(fontSize: 24),
-                ),
+                child: Text(meal['icon'], style: const TextStyle(fontSize: 24)),
               ),
-              title: Text(
-                meal['name'],
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                ),
+              title: Text(meal['name'], style: AppTheme.body),
+              subtitle: Text(meal['meta'], style: AppTheme.bodyMuted),
+              trailing: const Icon(
+                Icons.more_vert,
+                color: AppTheme.textMuted,
               ),
-              subtitle: Text(
-                meal['meta'],
-                style: const TextStyle(color: muted),
-              ),
-              trailing: const Icon(Icons.more_vert, color: Colors.white54),
             );
           }).toList(),
         ],
       ),
     );
   }
+
+  Widget _pill(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppTheme.primary,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: AppTheme.caption.copyWith(
+          color: AppTheme.bg,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
 }
 
-/// ---------------- AI TWEAK CHIP ----------------
+/// ───────────────── AI TWEAK CHIP ─────────────────
 
 class _TweakChip extends StatelessWidget {
   final String label;
@@ -329,14 +258,14 @@ class _TweakChip extends StatelessWidget {
       margin: const EdgeInsets.only(right: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF262B56),
+        color: AppTheme.cardBgAlt,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFF343A6A)),
+        border: Border.all(color: AppTheme.borderSoft),
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: Color(0xFFB787FF),
+        style: AppTheme.caption.copyWith(
+          color: AppTheme.primary,
           fontWeight: FontWeight.w700,
         ),
       ),

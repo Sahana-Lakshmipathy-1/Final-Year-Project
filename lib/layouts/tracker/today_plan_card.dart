@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
 
 class TodayPlanCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
   final VoidCallback onTap;
+  final Color? accentColor;
 
   const TodayPlanCard({
     super.key,
@@ -12,70 +14,80 @@ class TodayPlanCard extends StatelessWidget {
     required this.subtitle,
     required this.icon,
     required this.onTap,
+    this.accentColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    const bg = Color(0xFF181C3A);
-    const border = Color(0xFF2C315C);
-    const accent = Color(0xFFB787FF);
-    const text = Color(0xFFE9ECFF);
-    const muted = Color(0xFFB7C0E0);
+    final accent = accentColor ?? AppTheme.primary;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: border),
-        ),
-        child: Row(
-          children: [
-            /// ICON
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: accent.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: accent),
-            ),
-
-            const SizedBox(width: 14),
-
-            /// TEXT
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: text,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: muted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const Icon(
-              Icons.chevron_right,
-              color: muted,
-            ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.cardBgAlt,
+            AppTheme.cardBg,
           ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: AppTheme.radiusLarge,
+        border: Border.all(color: accent.withOpacity(0.25)),
+        boxShadow: AppTheme.softShadow,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: AppTheme.radiusLarge,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Row(
+              children: [
+                /// ICON BADGE
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: accent.withOpacity(0.18),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: accent,
+                    size: 26,
+                  ),
+                ),
+
+                const SizedBox(width: 16),
+
+                /// TEXT CONTENT
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: AppTheme.h2.copyWith(fontSize: 18),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        subtitle,
+                        style: AppTheme.bodyMuted.copyWith(height: 1.4),
+                      ),
+                    ],
+                  ),
+                ),
+
+                /// CHEVRON (navigation hint)
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppTheme.textMuted,
+                  size: 28,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

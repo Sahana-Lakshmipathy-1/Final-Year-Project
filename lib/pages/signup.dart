@@ -1,5 +1,6 @@
-import "package:flutter/material.dart";
-import "package:lumora/components/login/sign_up_form.dart";
+import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
+import 'package:lumora/components/login/sign_up_form.dart';
 
 class SignUpPage extends StatelessWidget {
   const SignUpPage({super.key});
@@ -7,23 +8,68 @@ class SignUpPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
+      backgroundColor: AppTheme.bg,
+      body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Text(
-                  "Create Account",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+            padding: const EdgeInsets.fromLTRB(24, 32, 24, 40),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  /// ------------------------------------------------------------
+                  /// HEADER / EMOTIONAL ANCHOR
+                  /// ------------------------------------------------------------
+                  Text(
+                    "Create your account ✨",
+                    style: AppTheme.h1,
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                SizedBox(height: 20),
-                SignUpForm(),
-              ],
+                  const SizedBox(height: 8),
+                  Text(
+                    "Let’s personalize your wellness journey.",
+                    style: AppTheme.bodyMuted,
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  /// ------------------------------------------------------------
+                  /// FORM CARD
+                  /// ------------------------------------------------------------
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: AppTheme.card,
+                    child: const SignUpForm(),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  /// ------------------------------------------------------------
+                  /// FOOTER ACTION
+                  /// ------------------------------------------------------------
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: AppTheme.body,
+                        children: [
+                          const TextSpan(text: "Already have an account? "),
+                          TextSpan(
+                            text: "Log in",
+                            style: AppTheme.body.copyWith(
+                              color: AppTheme.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

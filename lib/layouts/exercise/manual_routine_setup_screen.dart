@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
 
 class ManualRoutineSetupScreen extends StatefulWidget {
   const ManualRoutineSetupScreen({super.key});
@@ -37,18 +38,10 @@ class _ManualRoutineSetupScreenState extends State<ManualRoutineSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const bg = Color(0xFF0F1431);
-    const card = Color(0xFF181C3A);
-    const accent = Color(0xFFB787FF);
-    const text = Color(0xFFE9ECFF);
-    const muted = Color(0xFFB7C0E0);
-    const edge = Color(0xFF2C315C);
-
     return Scaffold(
-      backgroundColor: bg,
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
         title: const Text('Manual Weekly Routine'),
-        backgroundColor: card,
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -58,33 +51,22 @@ class _ManualRoutineSetupScreenState extends State<ManualRoutineSetupScreen> {
 
           return Container(
             margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: card,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: edge),
-            ),
+            decoration: AppTheme.card,
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// DAY HEADER + REST TOGGLE
+                /// DAY HEADER
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      day['day'],
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: text,
-                      ),
-                    ),
+                    Text(day['day'], style: AppTheme.h2),
                     Row(
                       children: [
-                        const Text('Rest', style: TextStyle(color: muted)),
+                        Text("Rest day", style: AppTheme.caption),
+                        const SizedBox(width: 6),
                         Switch(
                           value: day['isRest'],
-                          activeColor: accent,
                           onChanged: (v) => setState(() => day['isRest'] = v),
                         ),
                       ],
@@ -92,8 +74,14 @@ class _ManualRoutineSetupScreenState extends State<ManualRoutineSetupScreen> {
                   ],
                 ),
 
-                if (!day['isRest']) ...[
+                if (day['isRest']) ...[
                   const SizedBox(height: 12),
+                  Text(
+                    "Recovery is important. No workout scheduled.",
+                    style: AppTheme.bodyMuted,
+                  ),
+                ] else ...[
+                  const SizedBox(height: 16),
 
                   /// WORKOUT TYPE
                   DropdownButtonFormField<String>(
@@ -113,38 +101,41 @@ class _ManualRoutineSetupScreenState extends State<ManualRoutineSetupScreen> {
                             )
                             .toList(),
                     onChanged: (v) => setState(() => day['type'] = v),
-                    decoration: _dec('Workout Type'),
+                    decoration: AppTheme.inputDecoration('Workout focus'),
                   ),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
 
-                  /// TOTAL DAY DURATION
+                  /// TOTAL DURATION
                   TextFormField(
                     initialValue: day['totalDuration'],
                     onChanged: (v) => day['totalDuration'] = v,
-                    decoration: _dec('Total Day Duration (e.g. 45 min)'),
+                    decoration: AppTheme.inputDecoration(
+                      'Total duration (e.g. 45 min)',
+                    ),
                   ),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 20),
 
                   /// EXERCISES
+                  Text("Exercises", style: AppTheme.h2),
+                  const SizedBox(height: 8),
+
                   ...day['exercises'].map<Widget>((ex) {
                     return _ExerciseEditor(
                       exercise: ex,
-                      onRemove: () {
-                        setState(() => day['exercises'].remove(ex));
-                      },
+                      onRemove: () =>
+                          setState(() => day['exercises'].remove(ex)),
                     );
                   }).toList(),
 
-                  /// ADD EXERCISE BUTTON
+                  const SizedBox(height: 8),
+
+                  /// ADD EXERCISE
                   OutlinedButton.icon(
+                    style: AppTheme.ghostButton,
                     icon: const Icon(Icons.add),
-                    label: const Text('Add Exercise'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: accent,
-                      side: BorderSide(color: accent),
-                    ),
+                    label: const Text("Add exercise"),
                     onPressed: () {
                       setState(() {
                         day['exercises'].add({
@@ -163,40 +154,18 @@ class _ManualRoutineSetupScreenState extends State<ManualRoutineSetupScreen> {
         },
       ),
 
-      /// SUBMIT
+      /// SAVE
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16),
         child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: accent,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          onPressed: () {
-            Navigator.pop(context, routine);
-          },
-          child: const Text(
-            'Save Routine',
-            style: TextStyle(
-              color: Color(0xFF1A1034),
-              fontWeight: FontWeight.w800,
-            ),
-          ),
+          style: AppTheme.primaryButton,
+          onPressed: () => Navigator.pop(context, routine),
+          child: const Text("Save routine"),
         ),
       ),
     );
   }
-
-  InputDecoration _dec(String label) => InputDecoration(
-    labelText: label,
-    filled: true,
-    fillColor: const Color(0xFF14183A),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-  );
 }
-
-/// ---------------- EXERCISE INPUT BLOCK ----------------
 
 class _ExerciseEditor extends StatefulWidget {
   final Map<String, dynamic> exercise;
@@ -216,32 +185,32 @@ class _ExerciseEditorState extends State<_ExerciseEditor> {
 
   @override
   Widget build(BuildContext context) {
-    const muted = Color(0xFFB7C0E0);
-
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF14183A),
-        borderRadius: BorderRadius.circular(12),
+        color: AppTheme.cardBgAlt,
+        borderRadius: AppTheme.radiusSmall,
+        border: Border.all(color: AppTheme.borderSoft),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// EXERCISE NAME
+          /// NAME
           TextFormField(
             onChanged: (v) => widget.exercise['title'] = v,
-            decoration: const InputDecoration(labelText: 'Exercise Name'),
+            decoration: AppTheme.inputDecoration('Exercise name'),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
-          /// TAG INPUT
+          /// TAGS
           Row(
             children: [
               Expanded(
                 child: TextFormField(
                   controller: tagCtrl,
-                  decoration: const InputDecoration(labelText: 'Add Tag'),
+                  decoration: AppTheme.inputDecoration('Add tag'),
                 ),
               ),
               IconButton(
@@ -262,37 +231,45 @@ class _ExerciseEditorState extends State<_ExerciseEditor> {
             spacing: 6,
             children: widget.exercise['tags']
                 .map<Widget>(
-                  (t) => Chip(
-                    label: Text(t),
-                    onDeleted: () {
-                      setState(() => widget.exercise['tags'].remove(t));
-                    },
+                  (t) => AppTheme.chip(
+                    t,
+                    color: AppTheme.primary,
                   ),
                 )
                 .toList(),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
-          /// SETS
-          TextFormField(
-            onChanged: (v) => widget.exercise['sets'] = v,
-            decoration: const InputDecoration(labelText: 'Sets (e.g. 3)'),
-          ),
-
-          const SizedBox(height: 8),
-
-          /// DURATION / REPS
-          TextFormField(
-            onChanged: (v) => widget.exercise['duration'] = v,
-            decoration: const InputDecoration(labelText: 'Duration / Reps'),
+          /// SETS + REPS
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  onChanged: (v) => widget.exercise['sets'] = v,
+                  decoration: AppTheme.inputDecoration('Sets'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextFormField(
+                  onChanged: (v) => widget.exercise['duration'] = v,
+                  decoration: AppTheme.inputDecoration('Reps / Duration'),
+                ),
+              ),
+            ],
           ),
 
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: widget.onRemove,
-              child: const Text('Remove', style: TextStyle(color: muted)),
+              child: Text(
+                "Remove",
+                style: AppTheme.caption.copyWith(
+                  color: AppTheme.danger,
+                ),
+              ),
             ),
           ),
         ],

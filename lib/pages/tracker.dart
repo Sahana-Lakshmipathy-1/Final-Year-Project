@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lumora/theme/app_theme.dart';
 import 'package:lumora/layouts/tracker/ai_suggestion_card.dart';
 import 'package:lumora/layouts/tracker/today_plan_card.dart';
 
@@ -8,114 +9,119 @@ class TrackerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const bgColor = Color(0xFF0F1431);
-    const textPrimary = Color(0xFFE9ECFF);
-    const textMuted = Color(0xFFB7C0E0);
-
-    final today = DateFormat('EEEE, d MMM').format(DateTime.now());
+    final todayLabel = DateFormat('EEEE, d MMM').format(DateTime.now());
 
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
-        title: const Text("Tracker"),
-        backgroundColor: bgColor,
+        backgroundColor: AppTheme.bg,
         elevation: 0,
+        title: Text(
+          "Daily Tracker",
+          style: AppTheme.h2,
+        ),
       ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
           children: [
-            /// HEADER
-            Text(
-              "Today",
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-                color: textPrimary,
-              ),
-            ),
+            /// ------------------------------------------------------------
+            /// DATE CONTEXT
+            /// ------------------------------------------------------------
+            Text("Today", style: AppTheme.h1),
             const SizedBox(height: 4),
-            Text(
-              today,
-              style: const TextStyle(
-                fontSize: 14,
-                color: textMuted,
-              ),
-            ),
+            Text(todayLabel, style: AppTheme.bodyMuted),
 
             const SizedBox(height: 20),
 
-            /// AI SUGGESTION CARD
+            /// ------------------------------------------------------------
+            /// AI INSIGHT (ANCHOR)
+            /// ------------------------------------------------------------
             const AISuggestionCard(
               message:
-                  "You ate 20% healthier today than yesterday. Keep it up!",
+                  "You ate 20% healthier today than yesterday. Keep the momentum going 💪",
             ),
 
-            /// TODAY'S WORKOUT
-            _sectionTitle("Today's Workout"),
+            const SizedBox(height: 28),
+
+            /// ------------------------------------------------------------
+            /// TODAY’S FOCUS
+            /// ------------------------------------------------------------
+            _SectionHeader(
+              title: "Your focus today",
+              subtitle: "What matters most right now",
+            ),
+
+            const SizedBox(height: 12),
+
             TodayPlanCard(
               title: "Upper Body Workout",
               subtitle: "45 min • 5 exercises",
-              icon: Icons.fitness_center,
+              icon: Icons.fitness_center_rounded,
               onTap: () {
-                // TODO: Navigate to WorkoutDetailScreen
                 debugPrint("Navigate to workout details");
               },
             ),
 
-            /// TODAY'S MEALS
-            _sectionTitle("Today's Meals"),
+            const SizedBox(height: 14),
+
             TodayPlanCard(
-              title: "Meal Plan for Today",
-              subtitle: "Breakfast • Lunch • Snack • Cheat Meal",
-              icon: Icons.restaurant,
+              title: "Meal Plan",
+              subtitle: "Breakfast • Lunch • Snack • Dinner",
+              icon: Icons.restaurant_rounded,
               onTap: () {
-                // TODO: Navigate to MealDetailScreen
                 debugPrint("Navigate to meal details");
               },
             ),
 
-            /// DAILY SUMMARY (keep for later)
-            _sectionTitle("Summary"),
-            _placeholderCard(
-              "Daily calories, protein, and activity summary",
+            const SizedBox(height: 32),
+
+            /// ------------------------------------------------------------
+            /// DAILY SUMMARY (FUTURE-READY)
+            /// ------------------------------------------------------------
+            _SectionHeader(
+              title: "Daily summary",
+              subtitle: "Calories, activity & recovery",
+            ),
+
+            const SizedBox(height: 12),
+
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: AppTheme.card,
+              child: Text(
+                "Daily calories, protein intake, steps, and recovery insights will appear here.",
+                style: AppTheme.bodyMuted,
+              ),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  /// SECTION TITLE
-  Widget _sectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 24, bottom: 8),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          color: Color(0xFFE9ECFF),
-        ),
-      ),
-    );
-  }
+/// ----------------------------------------------------------------------
+/// SECTION HEADER (Reusable)
+/// ----------------------------------------------------------------------
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
 
-  /// PLACEHOLDER CARD
-  Widget _placeholderCard(String text) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF181C3A),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF2C315C)),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Color(0xFFB7C0E0),
-        ),
-      ),
+  const _SectionHeader({
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: AppTheme.sectionTitle),
+        const SizedBox(height: 4),
+        Text(subtitle, style: AppTheme.caption),
+      ],
     );
   }
 }

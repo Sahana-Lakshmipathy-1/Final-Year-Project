@@ -1,11 +1,12 @@
-// lib/pages/main_screen.dart
 import 'package:flutter/material.dart';
-import 'package:lumora/pages/home.dart';
-import 'package:lumora/pages/insights.dart';
-import 'package:lumora/pages/plans.dart';
-import 'package:lumora/pages/wellness.dart';
+import 'package:lumora/theme/app_theme.dart';
 import 'package:lumora/components/bottom_navbar.dart';
+
+import 'package:lumora/pages/home.dart';
 import 'package:lumora/pages/tracker.dart';
+import 'package:lumora/pages/plans.dart';
+import 'package:lumora/pages/insights.dart';
+import 'package:lumora/pages/wellness.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -15,9 +16,10 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  int _activeIndex = 0;
 
-  final List<Widget> _pages = const [
+  /// Centralized tabs (easy to reorder, log, deep-link)
+  static const List<Widget> _tabs = [
     HomeScreen(),
     TrackerScreen(),
     PlansScreen(),
@@ -25,19 +27,29 @@ class _MainScreenState extends State<MainScreen> {
     WellnessPage(),
   ];
 
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+  void _onTabSelected(int index) {
+    if (index == _activeIndex) return;
+
+    setState(() => _activeIndex = index);
+
+    // 🔮 Future hooks:
+    // analytics.logEvent(name: 'tab_switched', parameters: {'index': index});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_currentIndex],
+      backgroundColor: AppTheme.bg,
+
+      /// Keeps tab state alive (scroll position, forms, charts, etc.)
+      body: IndexedStack(
+        index: _activeIndex,
+        children: _tabs,
+      ),
+
       bottomNavigationBar: BottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: _onTabTapped,
+        currentIndex: _activeIndex,
+        onTap: _onTabSelected,
       ),
     );
   }
