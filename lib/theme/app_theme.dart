@@ -24,6 +24,11 @@ class AppTheme {
 
   static const Color borderSoft = Color(0x1AFFFFFF);
 
+  // Errors & warnings
+  static const Color error = Color(0xFFE5484D);
+  static const Color errorBg = Color(0x33E5484D); // 20% opacity
+  static const Color warningBg = Color(0x33FFB020);
+
   /* ============================================================
    🌈 GRADIENTS
   ============================================================ */
