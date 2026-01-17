@@ -5,6 +5,7 @@ import 'package:lumora/pages/insights.dart';
 import 'package:lumora/pages/plans.dart';
 import 'package:lumora/pages/wellness.dart';
 import 'package:lumora/components/bottom_navbar.dart';
+import 'package:lumora/pages/tracker.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -16,13 +17,12 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  // ✅ Replace placeholders with actual pages
   final List<Widget> _pages = const [
-    HomeScreen(), // replace with HomePage() if your class is named that
-    Center(child: Text("Tracker Page", style: TextStyle(fontSize: 20))),
+    HomeScreen(),
+    TrackerScreen(),
     PlansScreen(),
-    InsightsScreen(), // make sure InsightsScreen matches your insights.dart
-    WellnessPage(), // ✅ now using your wellness.dart screen
+    InsightsScreen(),
+    WellnessPage(),
   ];
 
   void _onTabTapped(int index) {
