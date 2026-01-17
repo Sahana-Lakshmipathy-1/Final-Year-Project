@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:lumora/theme/app_theme.dart';
+
+// AI / Manual setup
 import 'package:lumora/layouts/exercise/input_preference.dart';
 import 'package:lumora/layouts/exercise/manual_routine_setup_screen.dart';
 import 'package:lumora/layouts/meals/meal_input_preference.dart';
 import 'package:lumora/layouts/meals/manual_meal_setup_screen.dart';
+
+// Lists
+import 'package:lumora/layouts/plans/exercise_list_section.dart';
+import 'package:lumora/layouts/plans/meal_list_section.dart';
 
 class PlansScreen extends StatefulWidget {
   const PlansScreen({super.key});
@@ -16,7 +22,10 @@ class _PlansScreenState extends State<PlansScreen> {
   int _activeTab = 0; // 0 = Fitness, 1 = Meals
 
   void _go(BuildContext context, Widget page) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => page),
+    );
   }
 
   @override
@@ -106,7 +115,7 @@ class _PlansScreenState extends State<PlansScreen> {
                       child: OutlinedButton(
                         style: AppTheme.ghostButton,
                         onPressed: () async {
-                          final result = await Navigator.push(
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => isFitness
@@ -114,14 +123,6 @@ class _PlansScreenState extends State<PlansScreen> {
                                   : const ManualMealSetupScreen(),
                             ),
                           );
-
-                          if (result != null) {
-                            debugPrint(
-                              isFitness
-                                  ? "Manual fitness plan: $result"
-                                  : "Manual meal plan: $result",
-                            );
-                          }
                         },
                         child: const Text(
                           "Create manually",
@@ -132,6 +133,17 @@ class _PlansScreenState extends State<PlansScreen> {
                   ],
                 ),
               ),
+
+              const SizedBox(height: 28),
+
+              /// ------------------------------------------------------------
+              /// EXISTING PLANS LIST
+              /// ------------------------------------------------------------
+              if (isFitness) ...[
+                const ExerciseListSection(),
+              ] else ...[
+                const MealListSection(),
+              ],
             ],
           ),
         ),
@@ -141,7 +153,7 @@ class _PlansScreenState extends State<PlansScreen> {
 }
 
 /// ----------------------------------------------------------------------
-/// DOMAIN SWITCH (Senior alternative to DIY tabs)
+/// DOMAIN SWITCH (Fitness / Meals)
 /// ----------------------------------------------------------------------
 class _PlanDomainSwitch extends StatelessWidget {
   final int activeIndex;

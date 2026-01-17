@@ -4,6 +4,7 @@ import 'package:lumora/pages/insights.dart';
 import 'package:lumora/pages/plans.dart';
 import 'package:lumora/pages/tracker.dart';
 import 'package:lumora/pages/wellness.dart';
+import "package:lumora/pages/first_aid.dart";
 
 import 'package:lumora/layouts/home/today_focus.dart';
 import 'package:lumora/layouts/home/progress.dart';
@@ -79,7 +80,7 @@ class HomeScreen extends StatelessWidget {
                       icon: Icons.insights,
                       title: "First Aid",
                       subtitle: "Talk to our first bot",
-                      onTap: () => _go(context, const TrackerScreen()),
+                      onTap: () => _go(context, const FirstAidPage()),
                     ),
                   ),
                 ],

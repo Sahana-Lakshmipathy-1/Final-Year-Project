@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:lumora/theme/app_theme.dart';
 import 'package:lumora/layouts/tracker/ai_suggestion_card.dart';
 import 'package:lumora/layouts/tracker/today_plan_card.dart';
+import 'package:lumora/layouts/tracker/workout_checklist_page.dart';
+import 'package:lumora/layouts/tracker/meal_checklist_page.dart';
 
 class TrackerScreen extends StatelessWidget {
   const TrackerScreen({super.key});
@@ -35,7 +37,7 @@ class TrackerScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             /// ------------------------------------------------------------
-            /// AI INSIGHT (ANCHOR)
+            /// AI INSIGHT
             /// ------------------------------------------------------------
             const AISuggestionCard(
               message:
@@ -47,39 +49,51 @@ class TrackerScreen extends StatelessWidget {
             /// ------------------------------------------------------------
             /// TODAY’S FOCUS
             /// ------------------------------------------------------------
-            _SectionHeader(
+            const _SectionHeader(
               title: "Your focus today",
               subtitle: "What matters most right now",
             ),
 
             const SizedBox(height: 12),
 
+            /// ---------------- WORKOUT ----------------
             TodayPlanCard(
               title: "Upper Body Workout",
               subtitle: "45 min • 5 exercises",
               icon: Icons.fitness_center_rounded,
               onTap: () {
-                debugPrint("Navigate to workout details");
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const WorkoutChecklistPage(),
+                  ),
+                );
               },
             ),
 
             const SizedBox(height: 14),
 
+            /// ---------------- MEALS ----------------
             TodayPlanCard(
               title: "Meal Plan",
               subtitle: "Breakfast • Lunch • Snack • Dinner",
               icon: Icons.restaurant_rounded,
               onTap: () {
-                debugPrint("Navigate to meal details");
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const MealChecklistPage(),
+                  ),
+                );
               },
             ),
 
             const SizedBox(height: 32),
 
             /// ------------------------------------------------------------
-            /// DAILY SUMMARY (FUTURE-READY)
+            /// DAILY SUMMARY
             /// ------------------------------------------------------------
-            _SectionHeader(
+            const _SectionHeader(
               title: "Daily summary",
               subtitle: "Calories, activity & recovery",
             ),
@@ -102,7 +116,7 @@ class TrackerScreen extends StatelessWidget {
 }
 
 /// ----------------------------------------------------------------------
-/// SECTION HEADER (Reusable)
+/// SECTION HEADER
 /// ----------------------------------------------------------------------
 class _SectionHeader extends StatelessWidget {
   final String title;
