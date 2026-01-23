@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:lumora/services/user_session.dart';
 
 class ApiService {
   // ✅ Your Actual API Gateway URL
@@ -148,6 +149,33 @@ class ApiService {
       "event_type": "check_meal_plan_status",
       "user_id": email,
       "meal_routine_id": routineId,
+    });
+  }
+
+  // --- DAILY LOGGING ---
+  Future<Map<String, dynamic>> logAdherence(
+    Map<String, dynamic> payload,
+  ) async {
+    return await _post(payload);
+  }
+
+  // --- WELLNESS REFLECTION API ---
+  Future<Map<String, dynamic>> generateWellnessReflection(
+    String journalId,
+  ) async {
+    return await _post({
+      "event_type": "generate_wellness_reflection",
+      "user_id": UserSession.email,
+      "journal_id": journalId,
+    });
+  }
+
+  Future<Map<String, dynamic>> checkReflectionStatus(
+    String reflectionId,
+  ) async {
+    return await _post({
+      "event_type": "check_reflection_status",
+      "reflection_id": reflectionId,
     });
   }
 }

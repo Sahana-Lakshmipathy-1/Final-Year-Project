@@ -190,9 +190,9 @@ class _WellnessPageState extends State<WellnessPage> {
             ),
 
             WellnessActionCard(
-              title: "Sleep tracker",
-              subtitle: "Build better rest habits",
-              cta: "Log sleep",
+              title: "Overall Health Tracker",
+              subtitle: "Build better habits",
+              cta: "Log your stuff",
               icon: LucideIcons.moon,
               onTap: () => _go(context, const SleepTrackerPage()),
             ),
