@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lumora/theme/app_theme.dart';
+import 'package:lumora/services/user_session.dart'; // ✅ Import UserSession
+
 import 'package:lumora/pages/insights.dart';
 import 'package:lumora/pages/plans.dart';
 import 'package:lumora/pages/tracker.dart';
@@ -13,14 +15,8 @@ import 'package:lumora/layouts/home/explore_icon.dart';
 import 'package:lumora/layouts/home/today_meal.dart';
 
 class HomeScreen extends StatelessWidget {
-  // 1. Add variable to hold the name
-  final String userName;
-
-  // 2. Require it in the constructor
-  const HomeScreen({
-    super.key,
-    required this.userName,
-  });
+  // ✅ CLEAN: No constructor arguments needed anymore
+  const HomeScreen({super.key});
 
   void _go(BuildContext context, Widget page) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
@@ -37,7 +33,7 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               /// --------------------------------------------------------
-              /// GREETING HEADER (Updated)
+              /// GREETING HEADER (Uses UserSession)
               /// --------------------------------------------------------
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -48,7 +44,7 @@ class HomeScreen extends StatelessWidget {
                     children: [
                       Text("Good evening,", style: AppTheme.bodyMuted),
                       Text(
-                        userName, // ✅ Displays the real name
+                        UserSession.name ?? "User", // ✅ Global Access
                         style: AppTheme.h1,
                       ),
                     ],

@@ -88,7 +88,7 @@ class _UserPreferencePageState extends State<UserPreferencePage> {
           context,
           MaterialPageRoute(
             // 3. ✅ Pass name to MainScreen
-            builder: (_) => MainScreen(userName: widget.name),
+            builder: (_) => MainScreen(),
           ),
           (route) => false,
         );

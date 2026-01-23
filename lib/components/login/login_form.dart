@@ -3,7 +3,8 @@ import 'package:lumora/components/input_field.dart';
 import 'package:lumora/components/primary_button.dart';
 import 'package:lumora/services/api_service.dart';
 import 'package:lumora/theme/app_theme.dart';
-import 'package:lumora/main_screen.dart'; // ✅ Import MainScreen
+import 'package:lumora/main_screen.dart';
+import 'package:lumora/services/user_session.dart'; // ✅ Import UserSession
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -39,6 +40,7 @@ class _LoginFormState extends State<LoginForm> {
       print("🚀 Logging in...");
 
       // 1. Call API
+      // (ApiService automatically unwraps the "body" string for you)
       final response = await _api.logIn(
         _emailController.text.trim(),
         _passwordController.text.trim(),
@@ -46,22 +48,24 @@ class _LoginFormState extends State<LoginForm> {
 
       print("✅ Login Success: $response");
 
-      // 2. Extract Name from API Response
-      // If the API doesn't return a name, we default to "User" or the email
+      // 2. Extract Data
+      // The name comes from the API.
       String userName = response['name'] ?? "User";
 
-      // Fallback: If name is null/empty, try using the part before '@' in email
-      if (userName == "User") {
-        userName = _emailController.text.split('@')[0];
-      }
+      // The email comes from the API (or fallback to input text)
+      String userEmail = response['email'] ?? _emailController.text.trim();
+
+      // 3. 🍪 SET SESSION (Global Cookie)
+      UserSession.setSession(
+        userName: userName,
+        userEmail: userEmail,
+      );
 
       if (mounted) {
-        // 3. Pass the name to MainScreen
+        // 4. Navigate cleanly (MainScreen now reads from UserSession)
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(
-            builder: (_) => MainScreen(userName: userName), // ✅ PASSED HERE
-          ),
+          MaterialPageRoute(builder: (_) => const MainScreen()),
           (route) => false,
         );
       }

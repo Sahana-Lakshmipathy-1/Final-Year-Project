@@ -3,6 +3,7 @@ import 'package:lumora/theme/app_theme.dart';
 import 'package:lumora/components/survey/survey_stepper.dart';
 import 'package:lumora/services/api_service.dart';
 import 'package:lumora/main_screen.dart';
+import 'package:lumora/services/user_session.dart'; // ✅ Import UserSession
 
 class SurveyPage extends StatefulWidget {
   final String name;
@@ -95,9 +96,8 @@ class _SurveyPageState extends State<SurveyPage> {
 
     try {
       print("🚀 Creating account for ${widget.email}...");
-      print("Health: $_selectedHealthConditions");
-      print("Fitness: $_selectedFitnessGoals");
 
+      // 1. CALL API
       await _api.signUp(
         email: widget.email,
         password: widget.password,
@@ -105,7 +105,7 @@ class _SurveyPageState extends State<SurveyPage> {
         age: _age,
         weight: _weight.toDouble(),
         height: _height.toDouble(),
-        // Pass the new lists to the API
+        // Pass the lists
         healthConditions: _selectedHealthConditions,
         fitnessGoals: _selectedFitnessGoals,
         nutritionGoals: _selectedNutritionGoals,
@@ -113,10 +113,15 @@ class _SurveyPageState extends State<SurveyPage> {
 
       print("✅ Account Created!");
 
+      // 2. 🍪 SET SESSION (Global Cookie)
+      UserSession.setSession(userName: widget.name, userEmail: widget.email);
+
+      // 3. NAVIGATE TO HOME
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => MainScreen(userName: widget.name)),
+          // ✅ Clean navigation (No args needed)
+          MaterialPageRoute(builder: (_) => const MainScreen()),
           (route) => false,
         );
       }

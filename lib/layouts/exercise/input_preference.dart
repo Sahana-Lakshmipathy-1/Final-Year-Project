@@ -1,9 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:lumora/theme/app_theme.dart';
+import 'package:lumora/services/api_service.dart';
+import 'package:lumora/services/user_session.dart';
+
+// ✅ Custom Components
 import 'package:lumora/components/chip_group.dart';
 import 'package:lumora/components/input_field.dart';
 import 'package:lumora/components/primary_button.dart';
-import 'package:lumora/layouts/exercise/exercise_preview_screen.dart';
-import 'package:lumora/theme/app_theme.dart';
 
 class InputPreference extends StatefulWidget {
   const InputPreference({super.key});
@@ -13,6 +17,11 @@ class InputPreference extends StatefulWidget {
 }
 
 class _InputPreferenceState extends State<InputPreference> {
+  final ApiService _api = ApiService();
+  bool _isLoading = false;
+  String _statusMessage = "Generate workout with AI";
+
+  // --- FORM STATE ---
   String? selectedGoal;
   String? selectedEquipment;
   String? selectedDifficulty;
@@ -32,12 +41,156 @@ class _InputPreferenceState extends State<InputPreference> {
     super.dispose();
   }
 
+  // --- 🚀 POLLING LOGIC ---
+  Future<void> _generateRoutine() async {
+    if (!_validateForm()) return;
+
+    setState(() {
+      _isLoading = true;
+      _statusMessage = "Starting AI engine...";
+    });
+
+    try {
+      // 1. Prepare Request
+      final fullDayNames = _mapDaysToFullNames();
+      final payload = {
+        "event_type": "generate_weekly_routine",
+        "user_id": UserSession.email,
+        "primary_goal": selectedGoal!.toLowerCase().replaceAll(' ', '_'),
+        "time_availability": {
+          "days_per_week": int.tryParse(daysController.text) ?? 3,
+          "minutes_per_session": int.tryParse(minutesController.text) ?? 45,
+        },
+        "preferred_training_days": fullDayNames,
+        "available_equipment": [
+          selectedEquipment!.toLowerCase().replaceAll(' ', '_'),
+        ],
+        "difficulty_level": selectedDifficulty!.toLowerCase(),
+        "personal_notes": contextController.text,
+      };
+
+      print("🚀 [1/3] Requesting Generation...");
+
+      // 2. Initial Call (Gets Routine ID)
+      final initResponse = await _api.generateWeeklyRoutine(payload);
+
+      if (!initResponse.containsKey('routine_id')) {
+        throw Exception("Server did not return a Routine ID.");
+      }
+
+      final String routineId = initResponse['routine_id'];
+      print("✅ Routine ID Received: $routineId");
+
+      // 3. Start Polling Loop
+      bool isComplete = false;
+      int attempts = 0;
+      const int maxAttempts = 12; // 60 seconds max
+
+      while (!isComplete && attempts < maxAttempts) {
+        attempts++;
+        if (mounted) {
+          setState(() => _statusMessage = "AI is thinking... ($attempts)");
+        }
+
+        // Wait 5 seconds
+        await Future.delayed(const Duration(seconds: 5));
+
+        // Check Status
+        print("🔄 [2/3] Polling status... (Attempt $attempts)");
+        final statusResponse = await _api.checkRoutineStatus(
+          UserSession.email!,
+          routineId,
+        );
+
+        final String status = statusResponse['status'] ?? "UNKNOWN";
+        print("   Status: $status");
+
+        if (status == "COMPLETED") {
+          isComplete = true;
+          print("✅ [3/3] Generation Complete!");
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Routine Ready!")),
+            );
+            Navigator.pop(context);
+          }
+        } else if (status == "FAILED") {
+          throw Exception("AI Generation Failed on Server.");
+        }
+      }
+
+      if (!isComplete) {
+        throw Exception("Timeout: AI took too long to respond.");
+      }
+    } catch (e) {
+      print("❌ Error: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Error: ${e.toString().replaceAll('Exception: ', '')}",
+            ),
+            backgroundColor: AppTheme.danger,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _statusMessage = "Generate workout with AI";
+        });
+      }
+    }
+  }
+
+  bool _validateForm() {
+    if (selectedGoal == null ||
+        selectedEquipment == null ||
+        selectedDifficulty == null ||
+        daysController.text.isEmpty ||
+        minutesController.text.isEmpty ||
+        selectedDays.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill in all required fields.")),
+      );
+      return false;
+    }
+    return true;
+  }
+
+  List<String> _mapDaysToFullNames() {
+    return selectedDays.map((d) {
+      switch (d) {
+        case 'Mon':
+          return 'monday';
+        case 'Tue':
+          return 'tuesday';
+        case 'Wed':
+          return 'wednesday';
+        case 'Thu':
+          return 'thursday';
+        case 'Fri':
+          return 'friday';
+        case 'Sat':
+          return 'saturday';
+        case 'Sun':
+          return 'sunday';
+        default:
+          return d.toLowerCase();
+      }
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.bg,
       appBar: AppBar(
         title: const Text("Workout Preferences"),
+        backgroundColor: AppTheme.bg,
+        elevation: 0,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -49,10 +202,7 @@ class _InputPreferenceState extends State<InputPreference> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   /// HEADER
-                  Text(
-                    "Tell us about your goals",
-                    style: AppTheme.h1,
-                  ),
+                  Text("Tell us about your goals", style: AppTheme.h1),
                   const SizedBox(height: 6),
                   Text(
                     "Answer a few quick questions so the AI can design a plan that fits your lifestyle.",
@@ -74,10 +224,10 @@ class _InputPreferenceState extends State<InputPreference> {
                           value: selectedGoal,
                           hint: "Choose your main goal",
                           items: const [
-                            'Lose fat',
-                            'Build muscle',
-                            'Improve endurance',
-                            'Mobility & flexibility',
+                            'Weight loss',
+                            'Muscle gain',
+                            'Endurance',
+                            'Flexibility',
                             'General fitness',
                           ],
                           onChanged: (v) => setState(() => selectedGoal = v),
@@ -137,12 +287,10 @@ class _InputPreferenceState extends State<InputPreference> {
                           value: selectedEquipment,
                           hint: "Select equipment you have",
                           items: const [
-                            'None (bodyweight)',
+                            'Bodyweight',
                             'Resistance bands',
                             'Dumbbells',
-                            'Kettlebells',
-                            'Barbell + rack',
-                            'Full gym',
+                            'Gym',
                           ],
                           onChanged: (v) =>
                               setState(() => selectedEquipment = v),
@@ -187,28 +335,9 @@ class _InputPreferenceState extends State<InputPreference> {
 
                         /// CTA
                         PrimaryButton(
-                          label: "Generate workout with AI",
-                          onPressed: () async {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Generating your plan…"),
-                                duration: Duration(seconds: 1),
-                              ),
-                            );
-
-                            await Future.delayed(
-                              const Duration(milliseconds: 600),
-                            );
-
-                            if (!mounted) return;
-
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const ExercisePreviewScreen(),
-                              ),
-                            );
-                          },
+                          label: _statusMessage,
+                          isLoading: _isLoading,
+                          onPressed: _generateRoutine,
                         ),
                       ],
                     ),
@@ -241,12 +370,7 @@ class _InputPreferenceState extends State<InputPreference> {
       value: value,
       onChanged: onChanged,
       items: items
-          .map(
-            (e) => DropdownMenuItem(
-              value: e,
-              child: Text(e),
-            ),
-          )
+          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
           .toList(),
       decoration: AppTheme.inputDecoration(hint),
       dropdownColor: AppTheme.cardBgAlt,

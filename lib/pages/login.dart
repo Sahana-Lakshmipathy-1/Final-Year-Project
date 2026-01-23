@@ -23,7 +23,7 @@ class LoginPage extends StatelessWidget {
                   /// HEADER
                   /// ------------------------------------------------------------
                   Text(
-                    "Welcome back 👋",
+                    "Welcome back",
                     textAlign: TextAlign.center,
                     style: AppTheme.h1,
                   ),

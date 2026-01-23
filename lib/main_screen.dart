@@ -9,14 +9,9 @@ import 'package:lumora/pages/insights.dart';
 import 'package:lumora/pages/wellness.dart';
 
 class MainScreen extends StatefulWidget {
-  // 1. Add the variable to hold the name
-  final String userName;
-
-  // 2. Add it to the constructor so other pages can pass it in
-  const MainScreen({
-    super.key,
-    required this.userName,
-  });
+  // ❌ No variables needed here anymore!
+  // The session is handled globally by UserSession.
+  const MainScreen({super.key});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -25,24 +20,24 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _activeIndex = 0;
 
+  // Define tabs as a final list since they don't depend on constructor args anymore
+  final List<Widget> _tabs = const [
+    HomeScreen(), // ✅ Clean! No arguments needed.
+    TrackerScreen(),
+    PlansScreen(),
+    InsightsScreen(),
+    WellnessPage(),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    // 3. Pass widget.userName to the HomeScreen
-    final List<Widget> tabs = [
-      HomeScreen(userName: widget.userName),
-      const TrackerScreen(),
-      const PlansScreen(),
-      const InsightsScreen(),
-      const WellnessPage(),
-    ];
-
     return Scaffold(
       backgroundColor: AppTheme.bg,
 
-      // Keeps tab state alive
+      // IndexedStack keeps the state of tabs alive (so you don't lose scroll position)
       body: IndexedStack(
         index: _activeIndex,
-        children: tabs,
+        children: _tabs,
       ),
 
       bottomNavigationBar: BottomNavBar(

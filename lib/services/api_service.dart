@@ -97,4 +97,57 @@ class ApiService {
       },
     });
   }
+
+  // --- MANUAL ROUTINE ---
+  Future<Map<String, dynamic>> createManualRoutine(
+    Map<String, dynamic> payload,
+  ) async {
+    // We reuse the _post helper we wrote earlier
+    return await _post(payload);
+  }
+
+  // --- MANUAL MEAL PLAN ---
+  Future<Map<String, dynamic>> createManualMealPlan(
+    Map<String, dynamic> payload,
+  ) async {
+    return await _post(payload);
+  }
+
+  // --- AI GENERATION ---
+  Future<Map<String, dynamic>> generateWeeklyRoutine(
+    Map<String, dynamic> payload,
+  ) async {
+    // Reusing the smart _post method
+    return await _post(payload);
+  }
+
+  // --- CHECK STATUS ---
+  Future<Map<String, dynamic>> checkRoutineStatus(
+    String email,
+    String routineId,
+  ) async {
+    return await _post({
+      "event_type": "check_routine_status",
+      "user_id": email,
+      "routine_id": routineId,
+    });
+  }
+
+  // --- MEAL PLAN API ---
+  Future<Map<String, dynamic>> generateWeeklyMealPlan(
+    Map<String, dynamic> payload,
+  ) async {
+    return await _post(payload);
+  }
+
+  Future<Map<String, dynamic>> checkMealPlanStatus(
+    String email,
+    String routineId,
+  ) async {
+    return await _post({
+      "event_type": "check_meal_plan_status",
+      "user_id": email,
+      "meal_routine_id": routineId,
+    });
+  }
 }
