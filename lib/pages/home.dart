@@ -13,7 +13,14 @@ import 'package:lumora/layouts/home/explore_icon.dart';
 import 'package:lumora/layouts/home/today_meal.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  // 1. Add variable to hold the name
+  final String userName;
+
+  // 2. Require it in the constructor
+  const HomeScreen({
+    super.key,
+    required this.userName,
+  });
 
   void _go(BuildContext context, Widget page) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
@@ -29,8 +36,37 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// GREETING
-              Text("Good evening, Sahana", style: AppTheme.h1),
+              /// --------------------------------------------------------
+              /// GREETING HEADER (Updated)
+              /// --------------------------------------------------------
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Left side: Greeting text
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Good evening,", style: AppTheme.bodyMuted),
+                      Text(
+                        userName, // ✅ Displays the real name
+                        style: AppTheme.h1,
+                      ),
+                    ],
+                  ),
+
+                  // Right side: User Avatar
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.cardBg,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppTheme.borderSoft),
+                    ),
+                    child: const Icon(Icons.person, color: Colors.white),
+                  ),
+                ],
+              ),
+
               const SizedBox(height: 6),
               Text("Let’s take care of you today.", style: AppTheme.bodyMuted),
 

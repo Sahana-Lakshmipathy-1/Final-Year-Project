@@ -9,7 +9,14 @@ import 'package:lumora/pages/insights.dart';
 import 'package:lumora/pages/wellness.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  // 1. Add the variable to hold the name
+  final String userName;
+
+  // 2. Add it to the constructor so other pages can pass it in
+  const MainScreen({
+    super.key,
+    required this.userName,
+  });
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -18,38 +25,29 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _activeIndex = 0;
 
-  /// Centralized tabs (easy to reorder, log, deep-link)
-  static const List<Widget> _tabs = [
-    HomeScreen(),
-    TrackerScreen(),
-    PlansScreen(),
-    InsightsScreen(),
-    WellnessPage(),
-  ];
-
-  void _onTabSelected(int index) {
-    if (index == _activeIndex) return;
-
-    setState(() => _activeIndex = index);
-
-    // 🔮 Future hooks:
-    // analytics.logEvent(name: 'tab_switched', parameters: {'index': index});
-  }
-
   @override
   Widget build(BuildContext context) {
+    // 3. Pass widget.userName to the HomeScreen
+    final List<Widget> tabs = [
+      HomeScreen(userName: widget.userName),
+      const TrackerScreen(),
+      const PlansScreen(),
+      const InsightsScreen(),
+      const WellnessPage(),
+    ];
+
     return Scaffold(
       backgroundColor: AppTheme.bg,
 
-      /// Keeps tab state alive (scroll position, forms, charts, etc.)
+      // Keeps tab state alive
       body: IndexedStack(
         index: _activeIndex,
-        children: _tabs,
+        children: tabs,
       ),
 
       bottomNavigationBar: BottomNavBar(
         currentIndex: _activeIndex,
-        onTap: _onTabSelected,
+        onTap: (index) => setState(() => _activeIndex = index),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lumora/theme/app_theme.dart';
-import 'package:lumora/components/login/sign_up_form.dart';
+import 'package:lumora/components/login/sign_up_form.dart'; // Imports your updated form
+import 'package:lumora/pages/login.dart'; // For the "Log in" footer link
 
 class SignUpPage extends StatelessWidget {
   const SignUpPage({super.key});
@@ -19,7 +20,7 @@ class SignUpPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   /// ------------------------------------------------------------
-                  /// HEADER / EMOTIONAL ANCHOR
+                  /// HEADER
                   /// ------------------------------------------------------------
                   Text(
                     "Create your account ✨",
@@ -39,9 +40,19 @@ class SignUpPage extends StatelessWidget {
                   /// FORM CARD
                   /// ------------------------------------------------------------
                   Container(
-                    padding: const EdgeInsets.all(20),
                     decoration: AppTheme.card,
-                    child: const SignUpForm(),
+                    clipBehavior:
+                        Clip.antiAlias, // Ensures ink ripples don't spill out
+                    // 🛡️ CRITICAL: This Material widget prevents the crash.
+                    // Since your SignUpForm uses TextFields, they need this
+                    // parent to draw on.
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: const SignUpForm(),
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 24),
@@ -50,7 +61,13 @@ class SignUpPage extends StatelessWidget {
                   /// FOOTER ACTION
                   /// ------------------------------------------------------------
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      // Switch back to Login Page
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LoginPage()),
+                      );
+                    },
                     child: RichText(
                       textAlign: TextAlign.center,
                       text: TextSpan(

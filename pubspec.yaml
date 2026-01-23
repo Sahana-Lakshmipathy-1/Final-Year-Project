@@ -29,6 +29,7 @@ dependencies:
   responsive_framework: ^1.4.0
   intl: ^0.20.2
   lucide_icons: ^0.257.0
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

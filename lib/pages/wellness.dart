@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:lumora/theme/app_theme.dart';
 
+// --- SERVICE IMPORT ---
+import 'package:lumora/services/api_service.dart';
+
+// --- YOUR EXISTING PAGE IMPORTS ---
 import 'package:lumora/layouts/wellness/sleep_tracker.dart';
 import 'package:lumora/layouts/wellness/mood_analysis.dart';
 import 'package:lumora/layouts/wellness/wellness_bot.dart';
 import 'package:lumora/layouts/wellness/wellness_action_card.dart';
-
 import 'package:lumora/layouts/wellness/meditation_library_page.dart';
 
 class WellnessPage extends StatefulWidget {
@@ -17,7 +20,7 @@ class WellnessPage extends StatefulWidget {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                  MODELS                                    */
+/* MODELS                                   */
 /* -------------------------------------------------------------------------- */
 
 class MoodOption {
@@ -45,11 +48,108 @@ const List<MoodOption> moodOptions = [
 ];
 
 /* -------------------------------------------------------------------------- */
-/*                                  PAGE                                      */
+/* PAGE                                    */
 /* -------------------------------------------------------------------------- */
 
 class _WellnessPageState extends State<WellnessPage> {
   int _selectedMoodIndex = 3;
+  bool _isLogging = false;
+  final ApiService _api = ApiService();
+
+  // --- NEW: Handle the API Call with Dialog ---
+  Future<void> _handleCheckIn() async {
+    final TextEditingController noteController = TextEditingController();
+
+    // 1. Show Dialog to get a Note
+    final shouldSubmit = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardBg,
+        title: Text("Add a note?", style: AppTheme.h3),
+        content: TextField(
+          controller: noteController,
+          style: AppTheme.body,
+          decoration: InputDecoration(
+            hintText: "Why do you feel this way?",
+            hintStyle: AppTheme.bodySmall, // Ensure this exists in AppTheme
+            filled: true,
+            fillColor: AppTheme.bg,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text("Cancel", style: TextStyle(color: AppTheme.textMuted)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              "Log Mood",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldSubmit != true) return;
+
+    // 2. Call API
+    setState(() => _isLogging = true);
+
+    try {
+      final mood = moodOptions[_selectedMoodIndex];
+
+      // REPLACE "user@example.com" with actual user email from Auth provider later
+      print("Attempting to log mood for user@example.com...");
+
+      await _api.logMood(
+        email: "user@example.com",
+        mood: mood.label,
+        score: _selectedMoodIndex + 1, // 1 to 5 scale
+        note: noteController.text,
+      );
+
+      print("✅ API Success");
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Mood logged successfully!"),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      print("❌ API Error: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to log mood: $e"),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLogging = false);
+    }
+  }
 
   void _go(BuildContext context, Widget page) {
     Navigator.push(
@@ -75,6 +175,8 @@ class _WellnessPageState extends State<WellnessPage> {
             _MoodCheckInCard(
               selectedIndex: _selectedMoodIndex,
               onSelect: (i) => setState(() => _selectedMoodIndex = i),
+              onCheckInTap: _handleCheckIn,
+              isLoading: _isLogging,
             ),
 
             const SizedBox(height: 28),
@@ -150,16 +252,20 @@ class _WellnessPageState extends State<WellnessPage> {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                          MOOD CHECK-IN CARD                                 */
+/* MOOD CHECK-IN CARD                             */
 /* -------------------------------------------------------------------------- */
 
 class _MoodCheckInCard extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelect;
+  final VoidCallback onCheckInTap; // New Callback
+  final bool isLoading; // New Loading State
 
   const _MoodCheckInCard({
     required this.selectedIndex,
     required this.onSelect,
+    required this.onCheckInTap,
+    required this.isLoading,
   });
 
   @override
@@ -173,6 +279,7 @@ class _MoodCheckInCard extends StatelessWidget {
           Text("How are you feeling right now?", style: AppTheme.h3),
           const SizedBox(height: 14),
 
+          // Mood Icons Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(moodOptions.length, (index) {
@@ -185,8 +292,8 @@ class _MoodCheckInCard extends StatelessWidget {
                   onTap: () => onSelect(index),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    width: 56,
-                    height: 56,
+                    width: 50, // Slightly reduced to ensure fit
+                    height: 50,
                     decoration: BoxDecoration(
                       color: isActive
                           ? mood.color.withOpacity(0.15)
@@ -216,6 +323,41 @@ class _MoodCheckInCard extends StatelessWidget {
                 ),
               );
             }),
+          ),
+
+          const SizedBox(height: 20),
+
+          // --- NEW: Check In Button ---
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: isLoading ? null : onCheckInTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: AppTheme.radiusMedium,
+                ),
+                elevation: 0,
+              ),
+              child: isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      "Log Today's Mood",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+            ),
           ),
         ],
       ),

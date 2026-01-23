@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lumora/theme/app_theme.dart';
 import 'package:lumora/components/login/login_form.dart';
-import 'signup.dart';
+import 'package:lumora/pages/signup.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});

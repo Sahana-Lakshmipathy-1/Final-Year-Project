@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lumora/theme/app_theme.dart';
-import 'main_screen.dart';
+
+// 1. Import BOTH pages
+import 'package:lumora/pages/login.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,20 +16,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "Health App",
+      title: "Lumora Wellness",
 
       theme: ThemeData(
         brightness: Brightness.dark,
-
-        // 🌌 Global background
         scaffoldBackgroundColor: AppTheme.bg,
-
-        // ✍️ Global font
         textTheme: GoogleFonts.outfitTextTheme(
           ThemeData.dark().textTheme,
         ),
-
-        // 🎨 Primary color
         colorScheme: ColorScheme.dark(
           primary: AppTheme.primary,
           secondary: AppTheme.primary,
@@ -35,8 +31,6 @@ class MyApp extends StatelessWidget {
           surface: AppTheme.cardBg,
           error: AppTheme.danger,
         ),
-
-        // 🔝 AppBar styling
         appBarTheme: AppBarTheme(
           backgroundColor: AppTheme.bg,
           elevation: 0,
@@ -44,18 +38,12 @@ class MyApp extends StatelessWidget {
           titleTextStyle: AppTheme.h2,
           iconTheme: AppTheme.iconMuted,
         ),
-
-        // 🔘 Elevated buttons
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: AppTheme.primaryButton,
         ),
-
-        // 👻 Outlined / ghost buttons
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: AppTheme.ghostButton,
         ),
-
-        // ✍️ Input fields
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: AppTheme.cardBgAlt,
@@ -73,14 +61,8 @@ class MyApp extends StatelessWidget {
             borderSide: BorderSide(color: AppTheme.primary),
           ),
         ),
-
-        // ☑️ Switch theme
         switchTheme: AppTheme.switchTheme,
-
-        // 🔲 Icons
         iconTheme: AppTheme.iconMuted,
-
-        // 🧱 Divider
         dividerTheme: DividerThemeData(
           color: AppTheme.borderSoft,
           thickness: 1,
@@ -88,7 +70,15 @@ class MyApp extends StatelessWidget {
         ),
       ),
 
-      home: const MainScreen(), // ✅ Entry point
+      // -----------------------------------------------------------
+      // 🚀 ENTRY POINT
+      // -----------------------------------------------------------
+      // Start at LoginPage.
+      // Once they log in, we push them to MainScreen (which has the Navbar).
+      home: const LoginPage(),
+
+      // OR: Use this temporarily if you want to skip login during dev:
+      // home: const MainScreen(),
     );
   }
 }

@@ -17,6 +17,7 @@ class AppTheme {
   static const Color danger = Color(0xFFE53935);
   static const Color info = Color(0xFF42A5F5);
 
+  static const Color textPrimary = textWhite;
   static const Color textWhite = Color(0xFFEFEFFF);
   static const Color textGrey = Color(0xFFB3B3C3);
   static const Color textMuted = Color(0xFF8E8EA9);
@@ -158,6 +159,13 @@ class AppTheme {
     fontWeight: FontWeight.w800,
     color: textDark,
     letterSpacing: 0.3,
+  );
+
+  static const TextStyle bodySmall = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    color: textMuted,
+    height: 1.5,
   );
 
   /* ============================================================

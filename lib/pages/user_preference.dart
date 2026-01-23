@@ -1,170 +1,196 @@
 import 'package:flutter/material.dart';
 import 'package:lumora/theme/app_theme.dart';
-import 'package:lumora/components/chip_group.dart';
-import 'package:lumora/components/input_field.dart';
-import 'package:lumora/pages/home.dart';
+import 'package:lumora/services/api_service.dart';
+import 'package:lumora/main_screen.dart';
 
 class UserPreferencePage extends StatefulWidget {
-  const UserPreferencePage({super.key});
+  // 1. ✅ DEFINE ALL FIELDS HERE
+  final String name;
+  final String email;
+  final String password;
+  final int age;
+  final double weight;
+  final double height;
+
+  const UserPreferencePage({
+    super.key,
+    required this.name,
+    required this.email,
+    required this.password,
+    required this.age,
+    required this.weight,
+    required this.height,
+  });
 
   @override
   State<UserPreferencePage> createState() => _UserPreferencePageState();
 }
 
 class _UserPreferencePageState extends State<UserPreferencePage> {
-  final TextEditingController _healthController = TextEditingController();
+  final ApiService _api = ApiService();
+  bool _isLoading = false;
 
-  final List<String> fitnessGoals = [
+  // Goals & Conditions
+  final List<String> _selectedConditions = [];
+  final List<String> _selectedFitnessGoals = [];
+  final List<String> _selectedNutritionGoals = [];
+
+  // Options
+  final List<String> _healthOptions = [
+    "Anxiety",
+    "Depression",
+    "Insomnia",
+    "Diabetes",
+    "None",
+  ];
+  final List<String> _fitnessOptions = [
     "Lose Weight",
     "Build Muscle",
-    "Improve Endurance",
-    "Stay Active",
+    "Better Sleep",
+    "Reduce Stress",
   ];
-
-  final List<String> nutritionGoals = [
-    "High Protein",
-    "Low Carb",
+  final List<String> _nutritionOptions = [
+    "Balanced",
+    "Keto",
     "Vegan",
-    "Balanced Diet",
+    "High Protein",
   ];
 
-  final Set<String> selectedFitnessGoals = {};
-  final Set<String> selectedNutritionGoals = {};
+  void _toggleSelection(List<String> list, String item) {
+    setState(() {
+      list.contains(item) ? list.remove(item) : list.add(item);
+    });
+  }
 
-  @override
-  void dispose() {
-    _healthController.dispose();
-    super.dispose();
+  Future<void> _completeSignUp() async {
+    setState(() => _isLoading = true);
+
+    try {
+      print("Creating Account for ${widget.name}...");
+
+      // 2. ✅ CALL API WITH ALL DATA
+      await _api.signUp(
+        email: widget.email,
+        password: widget.password,
+        name: widget.name, // Now this works!
+        age: widget.age,
+        weight: widget.weight,
+        height: widget.height,
+        healthConditions: _selectedConditions,
+        fitnessGoals: _selectedFitnessGoals,
+        nutritionGoals: _selectedNutritionGoals,
+      );
+
+      print("✅ Success!");
+
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            // 3. ✅ Pass name to MainScreen
+            builder: (_) => MainScreen(userName: widget.name),
+          ),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      print("❌ Error: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error: $e"),
+            backgroundColor: AppTheme.danger,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.bg,
+      appBar: AppBar(
+        title: const Text("Your Goals"),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 36),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 460),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// ------------------------------------------------------------
-                  /// HEADER
-                  /// ------------------------------------------------------------
-                  Text("Your preferences", style: AppTheme.h1),
-                  const SizedBox(height: 6),
-                  Text(
-                    "Help us personalize your experience.",
-                    style: AppTheme.bodyMuted,
-                  ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text("Last step, ${widget.name}!", style: AppTheme.h2),
+              const SizedBox(height: 8),
+              Text("Select what applies to you.", style: AppTheme.bodyMuted),
 
-                  const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-                  /// ------------------------------------------------------------
-                  /// HEALTH CONTEXT
-                  /// ------------------------------------------------------------
-                  Text("Health considerations", style: AppTheme.sectionTitle),
-                  const SizedBox(height: 8),
-
-                  InputField(
-                    controller: _healthController,
-                    labelText: "Existing conditions (optional)",
-                    hintText: "e.g. asthma, diabetes, none",
-                  ),
-
-                  const SizedBox(height: 36),
-
-                  /// ------------------------------------------------------------
-                  /// FITNESS GOALS
-                  /// ------------------------------------------------------------
-                  Text("Fitness goals", style: AppTheme.sectionTitle),
-                  const SizedBox(height: 6),
-                  Text(
-                    "What would you like to focus on?",
-                    style: AppTheme.caption,
-                  ),
-                  const SizedBox(height: 14),
-
-                  ChipGroup(
-                    options: fitnessGoals,
-                    selectedValues: selectedFitnessGoals,
-                    onSelectionChanged: (goal, selected) {
-                      setState(() {
-                        selected
-                            ? selectedFitnessGoals.add(goal)
-                            : selectedFitnessGoals.remove(goal);
-                      });
-                    },
-                  ),
-
-                  const SizedBox(height: 36),
-
-                  /// ------------------------------------------------------------
-                  /// NUTRITION GOALS
-                  /// ------------------------------------------------------------
-                  Text("Nutrition preferences", style: AppTheme.sectionTitle),
-                  const SizedBox(height: 6),
-                  Text(
-                    "Optional, but helps with meal planning.",
-                    style: AppTheme.caption,
-                  ),
-                  const SizedBox(height: 14),
-
-                  ChipGroup(
-                    options: nutritionGoals,
-                    selectedValues: selectedNutritionGoals,
-                    onSelectionChanged: (goal, selected) {
-                      setState(() {
-                        selected
-                            ? selectedNutritionGoals.add(goal)
-                            : selectedNutritionGoals.remove(goal);
-                      });
-                    },
-                  ),
-
-                  const SizedBox(height: 44),
-
-                  /// ------------------------------------------------------------
-                  /// ACTIONS
-                  /// ------------------------------------------------------------
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          style: AppTheme.ghostButton,
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text("Back"),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          style: AppTheme.primaryButton,
-                          onPressed: _finishSetup,
-                          child: const Text("Finish setup"),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              _buildSection(
+                "Health Conditions",
+                _healthOptions,
+                _selectedConditions,
               ),
-            ),
+              const SizedBox(height: 24),
+              _buildSection(
+                "Fitness Goals",
+                _fitnessOptions,
+                _selectedFitnessGoals,
+              ),
+              const SizedBox(height: 24),
+              _buildSection(
+                "Nutrition",
+                _nutritionOptions,
+                _selectedNutritionGoals,
+              ),
+
+              const SizedBox(height: 40),
+
+              ElevatedButton(
+                onPressed: _isLoading ? null : _completeSignUp,
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text("Finish Setup"),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  void _finishSetup() {
-    debugPrint("Health: ${_healthController.text}");
-    debugPrint("Fitness goals: $selectedFitnessGoals");
-    debugPrint("Nutrition goals: $selectedNutritionGoals");
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
+  Widget _buildSection(
+    String title,
+    List<String> options,
+    List<String> selected,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: AppTheme.h3),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: options.map((option) {
+            final isSelected = selected.contains(option);
+            return FilterChip(
+              label: Text(option),
+              selected: isSelected,
+              onSelected: (_) => _toggleSelection(selected, option),
+              backgroundColor: AppTheme.cardBg,
+              selectedColor: AppTheme.primary,
+              checkmarkColor: Colors.white,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : AppTheme.textMuted,
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 }
