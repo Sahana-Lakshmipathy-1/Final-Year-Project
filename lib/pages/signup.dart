@@ -23,7 +23,7 @@ class SignUpPage extends StatelessWidget {
                   /// HEADER
                   /// ------------------------------------------------------------
                   Text(
-                    "Create your account ✨",
+                    "Create your account",
                     style: AppTheme.h1,
                     textAlign: TextAlign.center,
                   ),

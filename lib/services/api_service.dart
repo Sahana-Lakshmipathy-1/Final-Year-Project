@@ -107,6 +107,52 @@ class ApiService {
     return await _post(payload);
   }
 
+  /// Fetches all exercise routines for the user.
+  /// Backend returns: {"routines": [...]}
+  Future<Map<String, dynamic>> fetchExerciseRoutines() async {
+    return await _post({
+      "event_type": "get_exercise_routine",
+      "user_id": UserSession.email,
+    });
+  }
+
+  /// Updates a specific exercise routine (e.g., marking as complete).
+  /// [routineId] is the Partition Key (ROUTINE#...)
+  /// [updates] is a Map like {"weekly_schedule": [...], "status": "..."}
+  Future<Map<String, dynamic>> updateExerciseRoutine({
+    required String routineId,
+    required Map<String, dynamic> updates,
+  }) async {
+    return await _post({
+      "event_type": "update_exercise",
+      "routine_id": routineId,
+      "payload": updates,
+    });
+  }
+
+  /// Fetches all meal routines for the user.
+  /// Backend returns: {"meals": [...]}
+  Future<Map<String, dynamic>> fetchMealRoutines() async {
+    return await _post({
+      "event_type": "get_meal_routine",
+      "user_id": UserSession.email,
+    });
+  }
+
+  /// Updates a specific meal routine (e.g., changing 'completed' status).
+  /// [mealRoutineId] is the Partition Key (MEAL#...)
+  /// [updates] is a Map like {"weekly_meals": [...], "status": "..."}
+  Future<Map<String, dynamic>> updateMealRoutine({
+    required String mealRoutineId,
+    required Map<String, dynamic> updates,
+  }) async {
+    return await _post({
+      "event_type": "update_meal",
+      "meal_routine_id": mealRoutineId,
+      "payload": updates,
+    });
+  }
+
   // --- MANUAL MEAL PLAN ---
   Future<Map<String, dynamic>> createManualMealPlan(
     Map<String, dynamic> payload,

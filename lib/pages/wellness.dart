@@ -207,7 +207,7 @@ class _WellnessPageState extends State<WellnessPage> {
 
             const SizedBox(height: 28),
 
-            /// ------------------ MEDITATION CTA ------------------
+            // ------------------ MEDITATION CTA ------------------
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

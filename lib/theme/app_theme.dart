@@ -168,6 +168,24 @@ class AppTheme {
     height: 1.5,
   );
 
+  // Used for exercise metadata (e.g., "4 sets • 8 reps")
+  static TextStyle get captionSmall => caption.copyWith(
+    fontSize: 11,
+    color: Colors.white.withOpacity(0.5),
+  );
+
+  // Used for highlighting status or errors (e.g., "Missing user_id")
+  static TextStyle get captionError => caption.copyWith(
+    color: AppTheme.error, // Assuming you defined AppTheme.error for red
+    fontWeight: FontWeight.w500,
+  );
+
+  // Used for "Done" states where text should recede
+  static TextStyle get captionMuted => caption.copyWith(
+    color: Colors.white.withOpacity(0.3),
+    decoration: TextDecoration.lineThrough,
+  );
+
   /* ============================================================
    🔘 BUTTON STYLES
   ============================================================ */

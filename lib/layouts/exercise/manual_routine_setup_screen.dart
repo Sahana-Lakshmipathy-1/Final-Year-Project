@@ -31,23 +31,22 @@ class _ManualRoutineSetupScreenState extends State<ManualRoutineSetupScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize empty schedule
     for (final d in days) {
       routine.add({
         'day': d,
-        'type': 'Full Body', // This maps to "focus"
+        'type': 'Full Body',
         'isRest': false,
         'exercises': <Map<String, dynamic>>[],
       });
     }
   }
 
-  // --- SAVE LOGIC ---
   Future<void> _saveRoutine() async {
-    if (_routineNameController.text.isEmpty) {
+    if (_routineNameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Please name your routine (e.g., Summer Cut)"),
+          content: Text("Please name your routine"),
+          backgroundColor: Colors.orange,
         ),
       );
       return;
@@ -56,11 +55,10 @@ class _ManualRoutineSetupScreenState extends State<ManualRoutineSetupScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. TRANSFORM DATA to match your exact JSON
+      // 1. TRANSFORM DATA
       List<Map<String, dynamic>> weeklySchedule = [];
 
       for (var day in routine) {
-        // If Rest Day, send empty exercises and focus = "Rest"
         if (day['isRest'] == true) {
           weeklySchedule.add({
             "day": day['day'],
@@ -68,51 +66,48 @@ class _ManualRoutineSetupScreenState extends State<ManualRoutineSetupScreen> {
             "exercises": [],
           });
         } else {
-          // If Workout Day, map the exercises
           weeklySchedule.add({
             "day": day['day'],
             "focus": day['type'],
             "exercises": (day['exercises'] as List).map((ex) {
               return {
-                "name": ex['name'] ?? "Unknown Exercise",
+                "name": ex['name'] ?? "Unknown",
                 "sets": ex['sets'] ?? "3",
                 "reps": ex['reps'] ?? "10",
                 "rest": ex['rest'] ?? "60s",
                 "notes": ex['notes'] ?? "",
-                "completed": "No", // ✅ ADDED AS REQUESTED
+                "completed": "No",
               };
             }).toList(),
           });
         }
       }
 
-      // 2. CONSTRUCT PAYLOAD
+      // 2. PAYLOAD
       final payload = {
         "event_type": "create_manual_routine",
-        "user_id": UserSession.email, // ✅ From Session
-        "routine_summary": _routineNameController.text,
+        "user_id": UserSession.email,
+        "title": _routineNameController.text.trim(),
+        "routine_summary":
+            "Manual Routine: ${_routineNameController.text.trim()}",
         "weekly_schedule": weeklySchedule,
       };
 
-      print("🚀 Sending Payload: $payload");
-
-      // 3. CALL API
       await _api.createManualRoutine(payload);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Routine Created Successfully!")),
+          const SnackBar(
+            content: Text("Routine Saved!"),
+            backgroundColor: Colors.green,
+          ),
         );
-        Navigator.pop(context); // Go back to Plans/Home
+        Navigator.pop(context);
       }
     } catch (e) {
-      print("❌ Error: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error: $e"),
-            backgroundColor: AppTheme.danger,
-          ),
+          SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -125,143 +120,297 @@ class _ManualRoutineSetupScreenState extends State<ManualRoutineSetupScreen> {
     return Scaffold(
       backgroundColor: AppTheme.bg,
       appBar: AppBar(
-        title: const Text('Create Custom Routine'),
+        title: const Text('Create Routine'),
         backgroundColor: AppTheme.bg,
         elevation: 0,
-      ),
-      body: Column(
-        children: [
-          // --- ROUTINE NAME INPUT ---
+        actions: [
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _routineNameController,
-              style: AppTheme.h2,
-              decoration: AppTheme.inputDecoration(
-                'Routine Name (e.g. Arnold Split)',
-              ),
-            ),
-          ),
-
-          // --- WEEKLY LIST ---
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-              itemCount: routine.length,
-              itemBuilder: (context, index) {
-                final day = routine[index];
-                return _buildDayCard(day);
-              },
+            padding: const EdgeInsets.only(right: 8),
+            child: TextButton(
+              onPressed: _isLoading ? null : _saveRoutine,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppTheme.primary,
+                      ),
+                    )
+                  : const Text(
+                      "Save",
+                      style: TextStyle(
+                        color: AppTheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
             ),
           ),
         ],
       ),
-
-      // --- SAVE BUTTON ---
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        color: AppTheme.bg,
-        child: ElevatedButton(
-          style: AppTheme.primaryButton,
-          onPressed: _isLoading ? null : _saveRoutine,
-          child: _isLoading
-              ? const CircularProgressIndicator(color: Colors.white)
-              : const Text("Save Routine"),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDayCard(Map<String, dynamic> day) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: AppTheme.card,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
         children: [
-          // HEADER: Day Name + Rest Switch
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(day['day'], style: AppTheme.h3),
-              Row(
-                children: [
-                  Text("Rest Day", style: AppTheme.caption),
-                  Switch(
-                    value: day['isRest'],
-                    activeColor: AppTheme.primary,
-                    onChanged: (v) => setState(() => day['isRest'] = v),
-                  ),
-                ],
+          // --- TOP BAR: ROUTINE NAME ---
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.cardBg,
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.white.withOpacity(0.05),
+                  width: 1,
+                ),
               ),
-            ],
+            ),
+            child: TextField(
+              controller: _routineNameController,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Routine Name (e.g. Summer Cut)',
+                hintStyle: TextStyle(color: Colors.white30, fontSize: 20),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
           ),
 
-          if (day['isRest'])
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text("Active Recovery / Rest", style: AppTheme.bodyMuted),
-            )
-          else ...[
-            const SizedBox(height: 12),
-            // FOCUS DROPDOWN
-            DropdownButtonFormField<String>(
-              value: day['type'],
-              dropdownColor: AppTheme.cardBg,
-              style: AppTheme.body,
-              items: const [
-                'Full Body',
-                'Upper Body',
-                'Lower Body',
-                'Push',
-                'Pull',
-                'Legs',
-                'Core',
-                'Cardio',
-              ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-              onChanged: (v) => setState(() => day['type'] = v),
-              decoration: AppTheme.inputDecoration('Focus'),
-            ),
-
-            const SizedBox(height: 16),
-            Text("Exercises", style: AppTheme.h3),
-
-            // EXERCISE LIST
-            ...day['exercises'].map<Widget>((ex) {
-              return _ExerciseEditor(
-                exercise: ex,
-                onRemove: () => setState(() => day['exercises'].remove(ex)),
-              );
-            }).toList(),
-
-            const SizedBox(height: 12),
-
-            // ADD EXERCISE BUTTON
-            OutlinedButton.icon(
-              style: AppTheme.ghostButton,
-              icon: const Icon(Icons.add),
-              label: const Text("Add Exercise"),
-              onPressed: () {
-                setState(() {
-                  day['exercises'].add({
-                    'name': '',
-                    'sets': '',
-                    'reps': '',
-                    'rest': '',
-                    'notes': '',
-                  });
-                });
+          // --- SCROLLABLE LIST ---
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(20),
+              itemCount: routine.length,
+              itemBuilder: (context, index) {
+                return _DayCard(
+                  day: routine[index],
+                  onUpdate: () =>
+                      setState(() {}), // Refresh UI when data changes
+                );
               },
             ),
-          ],
+          ),
         ],
       ),
     );
   }
 }
 
-// --- EXERCISE EDITOR WIDGET ---
+// ───────────────── DAY CARD ─────────────────
+class _DayCard extends StatefulWidget {
+  final Map<String, dynamic> day;
+  final VoidCallback onUpdate;
+
+  const _DayCard({required this.day, required this.onUpdate});
+
+  @override
+  State<_DayCard> createState() => _DayCardState();
+}
+
+class _DayCardState extends State<_DayCard> {
+  @override
+  Widget build(BuildContext context) {
+    bool isRest = widget.day['isRest'];
+    List exercises = widget.day['exercises'];
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: AppTheme.cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.05),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // --- CARD HEADER ---
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.day['day'], style: AppTheme.h3),
+                    const SizedBox(height: 6),
+                    Text(
+                      isRest
+                          ? "Rest & Recovery"
+                          : "${widget.day['type']} Focus",
+                      style: TextStyle(
+                        color: isRest ? Colors.greenAccent : AppTheme.primary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                Switch(
+                  value: isRest,
+                  activeColor: Colors.black,
+                  activeTrackColor: Colors.greenAccent,
+                  inactiveThumbColor: Colors.white,
+                  inactiveTrackColor: Colors.grey.shade800,
+                  onChanged: (v) {
+                    setState(() => widget.day['isRest'] = v);
+                    widget.onUpdate();
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          // --- CONTENT AREA ---
+          if (!isRest) ...[
+            Divider(height: 1, color: Colors.white.withOpacity(0.08)),
+
+            // Focus Selection
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              child: Row(
+                children: [
+                  const Text(
+                    "Target Focus:",
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.bg,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.1),
+                          width: 1,
+                        ),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: widget.day['type'],
+                          dropdownColor: AppTheme.cardBg,
+                          isDense: true,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
+                          items:
+                              [
+                                    'Full Body',
+                                    'Upper Body',
+                                    'Lower Body',
+                                    'Push',
+                                    'Pull',
+                                    'Legs',
+                                    'Core',
+                                    'Cardio',
+                                  ]
+                                  .map(
+                                    (e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Text(e),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged: (v) {
+                            setState(() => widget.day['type'] = v);
+                            widget.onUpdate();
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Exercises List
+            if (exercises.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: exercises.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    return _ExerciseEditor(
+                      exercise: exercises[index],
+                      onRemove: () {
+                        setState(() => exercises.removeAt(index));
+                        widget.onUpdate();
+                      },
+                    );
+                  },
+                ),
+              ),
+
+            // Add Button
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: SizedBox(
+                width: double.infinity,
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                    backgroundColor: AppTheme.bg,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(
+                        color: AppTheme.primary.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(
+                    Icons.add,
+                    color: AppTheme.primary,
+                    size: 20,
+                  ),
+                  label: const Text(
+                    "Add Exercise",
+                    style: TextStyle(
+                      color: AppTheme.primary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      exercises.add({
+                        'name': '',
+                        'sets': '',
+                        'reps': '',
+                        'rest': '',
+                        'notes': '',
+                      });
+                    });
+                    widget.onUpdate();
+                  },
+                ),
+              ),
+            ),
+          ] else
+            const SizedBox(height: 4),
+        ],
+      ),
+    );
+  }
+}
+
+// ───────────────── EXERCISE EDITOR ─────────────────
 class _ExerciseEditor extends StatelessWidget {
   final Map<String, dynamic> exercise;
   final VoidCallback onRemove;
@@ -271,77 +420,155 @@ class _ExerciseEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardBgAlt,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.borderSoft),
+        color: AppTheme.bg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.08),
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
-          // Row 1: Name + Remove
+          // Row 1: Name + Close
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 child: TextFormField(
                   initialValue: exercise['name'],
                   onChanged: (v) => exercise['name'] = v,
-                  style: AppTheme.body,
-                  decoration: AppTheme.inputDecoration(
-                    'Exercise Name (e.g. Squat)',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                  decoration: const InputDecoration(
+                    hintText: "Exercise Name",
+                    hintStyle: TextStyle(color: Colors.white30),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
                   ),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.close, color: Colors.red),
-                onPressed: onRemove,
+              InkWell(
+                onTap: onRemove,
+                borderRadius: BorderRadius.circular(4),
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Icon(
+                    Icons.close,
+                    size: 20,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
 
-          // Row 2: Sets, Reps, Rest
+          const SizedBox(height: 16),
+
+          // Row 2: Stats Row (Sets, Reps, Rest)
           Row(
             children: [
-              Expanded(
-                child: TextFormField(
-                  initialValue: exercise['sets'],
-                  onChanged: (v) => exercise['sets'] = v,
-                  style: AppTheme.body,
-                  decoration: AppTheme.inputDecoration('Sets'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextFormField(
-                  initialValue: exercise['reps'],
-                  onChanged: (v) => exercise['reps'] = v,
-                  style: AppTheme.body,
-                  decoration: AppTheme.inputDecoration('Reps'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextFormField(
-                  initialValue: exercise['rest'],
-                  onChanged: (v) => exercise['rest'] = v,
-                  style: AppTheme.body,
-                  decoration: AppTheme.inputDecoration('Rest'),
-                ),
-              ),
+              _buildStatInput("Sets", "sets"),
+              const SizedBox(width: 10),
+              _buildStatInput("Reps", "reps"),
+              const SizedBox(width: 10),
+              _buildStatInput("Rest", "rest"),
             ],
           ),
-          const SizedBox(height: 8),
 
-          // Row 3: Notes
-          TextFormField(
-            initialValue: exercise['notes'],
-            onChanged: (v) => exercise['notes'] = v,
-            style: AppTheme.body,
-            decoration: AppTheme.inputDecoration('Notes (Optional)'),
+          // Row 3: Notes (Optional)
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppTheme.cardBg,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.05),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.edit_note,
+                  size: 18,
+                  color: Colors.white.withOpacity(0.3),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextFormField(
+                    initialValue: exercise['notes'],
+                    onChanged: (v) => exercise['notes'] = v,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.white70,
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: "Add notes...",
+                      hintStyle: TextStyle(
+                        color: Colors.white24,
+                        fontSize: 13,
+                      ),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStatInput(String label, String key) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppTheme.cardBg,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey.shade500,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
+            TextFormField(
+              initialValue: exercise[key],
+              onChanged: (v) => exercise[key] = v,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              decoration: const InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
