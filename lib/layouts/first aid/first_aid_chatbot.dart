@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lumora/theme/app_theme.dart';
+import 'package:lumora/services/api_service.dart';
+import 'package:lumora/services/chat_service.dart';
 
 class FirstAidChatPage extends StatefulWidget {
   const FirstAidChatPage({super.key});
@@ -11,25 +15,77 @@ class FirstAidChatPage extends StatefulWidget {
 
 class _FirstAidChatPageState extends State<FirstAidChatPage> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final ChatService _chatService = ChatService();
+  final ApiService _api = ApiService();
+
   final List<_ChatMessage> _messages = [];
   bool _isTyping = false;
 
   @override
   void initState() {
     super.initState();
+    _connectSocket();
 
-    // Initial bot message
+    // Initial bot message with "connecting" status
     _messages.add(
       _ChatMessage.bot(
-        "I can help with basic first aid steps.\n\n"
-        "Tell me what happened, or choose a category below.\n\n"
-        "⚠️ This does not replace professional medical care.",
+        "Hello! I'm your First Aid Assistant. Connecting to secure server...",
       ),
     );
   }
 
-  void _sendMessage(String text) {
-    if (text.trim().isEmpty) return;
+  /// Establishes the WebSocket connection and starts listening
+  void _connectSocket() {
+    _chatService.connect();
+    _chatService.messages.listen(
+      (rawData) => _handleIncomingStream(rawData),
+      onError: (err) => print("📡 Socket Error: $err"),
+      onDone: () => print("📡 Socket Closed"),
+    );
+  }
+
+  /// Manages the incoming data stream from the WebSocket
+  void _handleIncomingStream(dynamic rawData) {
+    print("📥 RAW: $rawData");
+    try {
+      final data = jsonDecode(rawData);
+
+      // 1. CAPTURE THE HANDSHAKE ID (connection_id)
+      if (data.containsKey('connection_id')) {
+        setState(() {
+          _chatService.connectionId = data['connection_id'];
+          // Update initial message to let user know we're ready
+          if (_messages.isNotEmpty) {
+            _messages[0].text =
+                "Hello! I'm ready to help. Describe the situation or tap a quick prompt below.";
+          }
+        });
+        return;
+      }
+
+      // 2. HANDLE STREAMING TEXT CHUNKS
+      final String chunk = data['text'] ?? data['chunk'] ?? "";
+      if (chunk.isEmpty) return;
+
+      setState(() {
+        _isTyping = false;
+        // If the last message is from the bot, append the new chunk
+        if (_messages.isNotEmpty && !_messages.last.isUser) {
+          _messages.last.text += chunk;
+        } else {
+          _messages.add(_ChatMessage.bot(chunk));
+        }
+      });
+      _scrollToBottom();
+    } catch (e) {
+      print("❌ Parse Error: $e");
+    }
+  }
+
+  /// Sends the message via REST API and triggers the WebSocket stream
+  Future<void> _sendMessage(String text) async {
+    if (text.trim().isEmpty || _chatService.connectionId == null) return;
 
     setState(() {
       _messages.add(_ChatMessage.user(text));
@@ -37,48 +93,72 @@ class _FirstAidChatPageState extends State<FirstAidChatPage> {
     });
 
     _controller.clear();
+    _scrollToBottom();
 
-    // Simulated response (AI later)
-    Future.delayed(const Duration(seconds: 2), () {
+    try {
+      // ✅ Hybrid Trigger: POST via HTTP, response comes back via WebSocket
+      await _api.askBotQuestion(
+        question: text,
+        connectionId: _chatService.connectionId!,
+        botType: "first_aid",
+      );
+    } catch (e) {
       setState(() {
+        _isTyping = false;
         _messages.add(
           _ChatMessage.bot(
-            "Thanks for sharing.\n\n"
-            "Here are some general first-aid steps:\n"
-            "• Stay calm\n"
-            "• Remove yourself from danger\n"
-            "• Apply basic care if safe\n\n"
-            "If symptoms worsen, seek medical help immediately.",
+            "⚠️ Sorry, I couldn't reach the server. Please check your internet connection.",
           ),
         );
-        _isTyping = false;
       });
+    }
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
-  void _quickPrompt(String label) {
-    _sendMessage(label);
+  @override
+  void dispose() {
+    // 🔌 Disconnects the WebSocket automatically when switching pages
+    _chatService.dispose();
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    bool isReady = _chatService.connectionId != null;
+
     return Scaffold(
       backgroundColor: AppTheme.bg,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         title: Text("First Aid Assistant", style: AppTheme.h2),
-        iconTheme: IconThemeData(color: AppTheme.primary),
+        iconTheme: const IconThemeData(color: AppTheme.primary),
       ),
       body: SafeArea(
         child: Column(
           children: [
-            /// ------------------------------------------------------------
-            /// CHAT
-            /// ------------------------------------------------------------
+            /// 1. CHAT MESSAGE LIST
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                controller: _scrollController,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 itemCount: _messages.length + (_isTyping ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (_isTyping && index == _messages.length) {
@@ -89,84 +169,88 @@ class _FirstAidChatPageState extends State<FirstAidChatPage> {
               ),
             ),
 
-            /// ------------------------------------------------------------
-            /// QUICK PROMPTS
-            /// ------------------------------------------------------------
+            /// 2. QUICK PROMPT CHIPS
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _QuickChip("Cut / Bleeding"),
-                  _QuickChip("Burn"),
-                  _QuickChip("Sprain"),
-                  _QuickChip("Bite / Sting"),
-                  _QuickChip("Poisoning"),
-                ],
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: SizedBox(
+                width: double.infinity,
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.start,
+                  children:
+                      [
+                            "Bleeding",
+                            "Burn",
+                            "Choking",
+                            "Faint",
+                            "Bite / Sting",
+                          ]
+                          .map(
+                            (label) => _QuickChip(
+                              label,
+                              onTap: isReady
+                                  ? () => _sendMessage(label)
+                                  : () {},
+                            ),
+                          )
+                          .toList(),
+                ),
               ),
             ),
 
-            const SizedBox(height: 10),
-
-            /// ------------------------------------------------------------
-            /// INPUT BAR
-            /// ------------------------------------------------------------
+            /// 3. INPUT BAR
             Container(
-              margin: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              margin: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
                 color: AppTheme.cardBg,
                 borderRadius: AppTheme.radiusLarge,
-                border: Border.all(color: AppTheme.borderSoft),
+                border: Border.all(
+                  color: isReady
+                      ? AppTheme.primary.withOpacity(0.4)
+                      : AppTheme.borderSoft,
+                ),
               ),
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _controller,
+                      enabled: isReady,
                       style: AppTheme.body,
                       decoration: InputDecoration(
-                        hintText: "Describe the situation…",
+                        hintText: isReady
+                            ? "Describe the injury..."
+                            : "Connecting...",
                         hintStyle: AppTheme.caption,
                         border: InputBorder.none,
                       ),
                       onSubmitted: _sendMessage,
                     ),
                   ),
+                  if (!isReady)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 8.0),
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ),
                   IconButton(
                     icon: Icon(
                       LucideIcons.send,
-                      color: AppTheme.primary,
+                      color: isReady ? AppTheme.primary : Colors.grey,
                     ),
-                    onPressed: () => _sendMessage(_controller.text),
+                    onPressed: isReady
+                        ? () => _sendMessage(_controller.text)
+                        : null,
                   ),
                 ],
-              ),
-            ),
-
-            /// ------------------------------------------------------------
-            /// EMERGENCY CTA
-            /// ------------------------------------------------------------
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  icon: const Icon(LucideIcons.phoneCall),
-                  label: const Text("Call Emergency Contact"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.error,
-                    foregroundColor: AppTheme.textWhite,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: AppTheme.radiusMedium,
-                    ),
-                  ),
-                  onPressed: () {
-                    // TODO: Call saved emergency contact
-                  },
-                ),
               ),
             ),
           ],
@@ -177,21 +261,7 @@ class _FirstAidChatPageState extends State<FirstAidChatPage> {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                              CHAT MODELS                                   */
-/* -------------------------------------------------------------------------- */
-
-class _ChatMessage {
-  final String text;
-  final bool isUser;
-
-  _ChatMessage._(this.text, this.isUser);
-
-  factory _ChatMessage.user(String text) => _ChatMessage._(text, true);
-  factory _ChatMessage.bot(String text) => _ChatMessage._(text, false);
-}
-
-/* -------------------------------------------------------------------------- */
-/*                              CHAT BUBBLE                                   */
+/* SUB-COMPONENTS                                                             */
 /* -------------------------------------------------------------------------- */
 
 class _ChatBubble extends StatelessWidget {
@@ -201,86 +271,77 @@ class _ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUser;
-
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 6),
         padding: const EdgeInsets.all(14),
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
+          maxWidth: MediaQuery.of(context).size.width * 0.8,
         ),
         decoration: BoxDecoration(
           color: isUser ? AppTheme.primary : AppTheme.cardBgAlt,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(18),
-            topRight: const Radius.circular(18),
-            bottomLeft: isUser
-                ? const Radius.circular(18)
-                : const Radius.circular(6),
+          borderRadius: BorderRadius.circular(16).copyWith(
             bottomRight: isUser
-                ? const Radius.circular(6)
-                : const Radius.circular(18),
+                ? const Radius.circular(0)
+                : const Radius.circular(16),
+            bottomLeft: isUser
+                ? const Radius.circular(16)
+                : const Radius.circular(0),
           ),
         ),
-        child: Text(
-          message.text,
-          style: AppTheme.body.copyWith(
-            color: isUser ? AppTheme.bg : AppTheme.textWhite,
-            height: 1.4,
+        child: MarkdownBody(
+          data: message.text,
+          styleSheet: MarkdownStyleSheet(
+            p: AppTheme.body.copyWith(
+              color: isUser ? AppTheme.bg : Colors.white,
+              height: 1.4,
+            ),
+            listBullet: TextStyle(
+              color: isUser ? AppTheme.bg : AppTheme.primary,
+            ),
           ),
         ),
       ),
     );
   }
 }
-
-/* -------------------------------------------------------------------------- */
-/*                             QUICK CHIPS                                    */
-/* -------------------------------------------------------------------------- */
 
 class _QuickChip extends StatelessWidget {
   final String label;
-  const _QuickChip(this.label);
+  final VoidCallback onTap;
+  const _QuickChip(this.label, {required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context
-          .findAncestorStateOfType<_FirstAidChatPageState>()
-          ?._quickPrompt(label),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: AppTheme.cardBgAlt,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: AppTheme.borderSoft),
-        ),
-        child: Text(label, style: AppTheme.caption),
-      ),
+    return ActionChip(
+      label: Text(label, style: AppTheme.caption),
+      backgroundColor: AppTheme.cardBgAlt,
+      side: const BorderSide(color: AppTheme.borderSoft),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      onPressed: onTap,
     );
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/*                          TYPING INDICATOR                                   */
-/* -------------------------------------------------------------------------- */
+class _ChatMessage {
+  String text;
+  final bool isUser;
+  _ChatMessage({required this.text, required this.isUser});
+  factory _ChatMessage.user(String text) =>
+      _ChatMessage(text: text, isUser: true);
+  factory _ChatMessage.bot(String text) =>
+      _ChatMessage(text: text, isUser: false);
+}
 
 class _TypingIndicator extends StatelessWidget {
   const _TypingIndicator();
-
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          const SizedBox(width: 12),
-          Text("First Aid Assistant is typing", style: AppTheme.caption),
-          const SizedBox(width: 8),
-          Text("• • •", style: AppTheme.caption),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.all(12),
+    child: Text(
+      "Assistant is thinking...",
+      style: TextStyle(color: Colors.grey, fontSize: 12),
+    ),
+  );
 }

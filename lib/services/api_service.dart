@@ -178,4 +178,23 @@ class ApiService {
       "reflection_id": reflectionId,
     });
   }
+
+  // --- CHAT TRIGGER ---
+  Future<void> askBotQuestion({
+    required String question,
+    required String connectionId,
+    required String botType,
+  }) async {
+    final payload = {
+      "event_type": "ask_question",
+      "connection_id": connectionId,
+      "session_id": "SESSION#${UserSession.email}",
+      "message_id": "MSG#${DateTime.now().millisecondsSinceEpoch}",
+      "question": question,
+      "bot_type": botType,
+    };
+
+    // Standard POST call to your REST endpoint
+    await _post(payload);
+  }
 }
