@@ -1,5 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lumora/theme/app_theme.dart';
+import 'package:lumora/services/api_service.dart';
+import 'package:lumora/services/chat_service.dart';
 
 class WellnessChatPage extends StatefulWidget {
   const WellnessChatPage({super.key});
@@ -10,61 +15,147 @@ class WellnessChatPage extends StatefulWidget {
 
 class _WellnessChatPageState extends State<WellnessChatPage> {
   final TextEditingController _controller = TextEditingController();
-  final List<_ChatMessage> _messages = [];
-  bool _isThinking = false;
+  final ScrollController _scrollController = ScrollController();
 
-  void _sendMessage() {
-    final text = _controller.text.trim();
-    if (text.isEmpty) return;
+  // Services
+  final ChatService _chatService = ChatService();
+  final ApiService _api = ApiService();
+
+  final List<_ChatMessage> _messages = [];
+  bool _isTyping = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _connectSocket();
+
+    // Initial Warm Welcome
+    _messages.add(
+      _ChatMessage.bot(
+        "Hi there. I'm your Wellness Companion. 💜\n\n"
+        "I'm here to listen and support you. How are you feeling in this moment?",
+      ),
+    );
+  }
+
+  void _connectSocket() {
+    _chatService.connect();
+    _chatService.messages.listen(
+      (rawData) => _handleIncomingStream(rawData),
+      onError: (err) => print("📡 Wellness Socket Error: $err"),
+      onDone: () => print("📡 Wellness Socket Closed"),
+    );
+  }
+
+  void _handleIncomingStream(dynamic rawData) {
+    try {
+      final data = jsonDecode(rawData);
+
+      // 🔑 Capture the connection_id for the HTTP trigger
+      if (data.containsKey('connection_id')) {
+        setState(() {
+          _chatService.connectionId = data['connection_id'];
+        });
+        return;
+      }
+
+      // 📝 Handle streaming text chunks
+      final String chunk = data['text'] ?? data['chunk'] ?? "";
+      if (chunk.isEmpty) return;
+
+      setState(() {
+        _isTyping = false;
+        // Append to last bot message if it exists, otherwise create new one
+        if (_messages.isNotEmpty && !_messages.last.isUser) {
+          _messages.last.text += chunk;
+        } else {
+          _messages.add(_ChatMessage.bot(chunk));
+        }
+      });
+      _scrollToBottom();
+    } catch (e) {
+      print("❌ Wellness Parse Error: $e");
+    }
+  }
+
+  Future<void> _sendMessage(String text) async {
+    if (text.trim().isEmpty || _chatService.connectionId == null) return;
 
     setState(() {
       _messages.add(_ChatMessage.user(text));
-      _controller.clear();
-      _isThinking = true;
+      _isTyping = true;
     });
 
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
+    _controller.clear();
+    _scrollToBottom();
+
+    try {
+      // ✅ Trigger AI via HTTP POST with the 'wellness' bot_type
+      await _api.askBotQuestion(
+        question: text,
+        connectionId: _chatService.connectionId!,
+        botType: "wellness",
+      );
+    } catch (e) {
       setState(() {
+        _isTyping = false;
         _messages.add(
           _ChatMessage.bot(
-            "I’m here with you 💜\n\n"
-            "It sounds like you’re carrying a lot today. "
-            "Do you want to talk about what’s been weighing on you?",
+            "⚠️ I'm having a little trouble connecting. Could you try sharing that again?",
           ),
         );
-        _isThinking = false;
       });
+    }
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
   @override
+  void dispose() {
+    // 🔌 Cleanly disconnects WebSocket when switching pages
+    _chatService.dispose();
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    bool isReady = _chatService.connectionId != null;
+
     return Scaffold(
       backgroundColor: AppTheme.bg,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.primary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text("Wellness Coach", style: AppTheme.h2),
+        centerTitle: true,
+        title: Text("Wellness Companion", style: AppTheme.h2),
+        iconTheme: const IconThemeData(color: AppTheme.primary),
       ),
       body: SafeArea(
         child: Column(
           children: [
-            /// CHAT LIST
+            /// 1. CHAT MESSAGES
             Expanded(
               child: ListView.builder(
-                physics: const BouncingScrollPhysics(),
+                controller: _scrollController,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 12,
+                  vertical: 8,
                 ),
-                itemCount: _messages.length + (_isThinking ? 1 : 0),
+                itemCount: _messages.length + (_isTyping ? 1 : 0),
                 itemBuilder: (context, index) {
-                  if (_isThinking && index == _messages.length) {
+                  if (_isTyping && index == _messages.length) {
                     return const _TypingIndicator();
                   }
                   return _ChatBubble(message: _messages[index]);
@@ -72,32 +163,85 @@ class _WellnessChatPageState extends State<WellnessChatPage> {
               ),
             ),
 
-            /// INPUT BAR
+            /// 2. WELLNESS PROMPT CHIPS
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: SizedBox(
+                width: double.infinity,
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children:
+                      [
+                            "Feeling Anxious",
+                            "Daily Vent",
+                            "Stress Relief",
+                            "Sleep Help",
+                            "Affirmations",
+                          ]
+                          .map(
+                            (label) => _QuickChip(
+                              label,
+                              onTap: isReady
+                                  ? () => _sendMessage(label)
+                                  : () {},
+                            ),
+                          )
+                          .toList(),
+                ),
+              ),
+            ),
+
+            /// 3. INPUT BAR
             Container(
-              margin: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              margin: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
                 color: AppTheme.cardBg,
                 borderRadius: AppTheme.radiusLarge,
-                border: Border.all(color: AppTheme.borderSoft),
+                border: Border.all(
+                  color: isReady
+                      ? AppTheme.primary.withOpacity(0.4)
+                      : AppTheme.borderSoft,
+                ),
               ),
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _controller,
-                      style: AppTheme.body.copyWith(color: Colors.white),
+                      enabled: isReady,
+                      style: AppTheme.body,
                       decoration: InputDecoration(
-                        hintText: "Share what’s on your mind…",
+                        hintText: isReady
+                            ? "Share your thoughts..."
+                            : "Connecting...",
                         hintStyle: AppTheme.caption,
                         border: InputBorder.none,
                       ),
-                      onSubmitted: (_) => _sendMessage(),
+                      onSubmitted: _sendMessage,
                     ),
                   ),
+                  if (!isReady)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 8.0),
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ),
                   IconButton(
-                    icon: Icon(Icons.send_rounded, color: AppTheme.primary),
-                    onPressed: _sendMessage,
+                    icon: Icon(
+                      LucideIcons.send,
+                      color: isReady ? AppTheme.primary : Colors.grey,
+                    ),
+                    onPressed: isReady
+                        ? () => _sendMessage(_controller.text)
+                        : null,
                   ),
                 ],
               ),
@@ -110,21 +254,7 @@ class _WellnessChatPageState extends State<WellnessChatPage> {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                  MODEL                                     */
-/* -------------------------------------------------------------------------- */
-
-class _ChatMessage {
-  final String text;
-  final bool isUser;
-
-  _ChatMessage._(this.text, this.isUser);
-
-  factory _ChatMessage.user(String text) => _ChatMessage._(text, true);
-  factory _ChatMessage.bot(String text) => _ChatMessage._(text, false);
-}
-
-/* -------------------------------------------------------------------------- */
-/*                               CHAT BUBBLE                                  */
+/* UI SUB-COMPONENTS                                                          */
 /* -------------------------------------------------------------------------- */
 
 class _ChatBubble extends StatelessWidget {
@@ -134,34 +264,32 @@ class _ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUser;
-
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.all(14),
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
+          maxWidth: MediaQuery.of(context).size.width * 0.8,
         ),
         decoration: BoxDecoration(
           color: isUser ? AppTheme.primary : AppTheme.cardBgAlt,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(18),
-            topRight: const Radius.circular(18),
-            bottomLeft: isUser
-                ? const Radius.circular(18)
-                : const Radius.circular(6),
+          borderRadius: BorderRadius.circular(16).copyWith(
             bottomRight: isUser
-                ? const Radius.circular(6)
-                : const Radius.circular(18),
+                ? const Radius.circular(0)
+                : const Radius.circular(16),
+            bottomLeft: isUser
+                ? const Radius.circular(16)
+                : const Radius.circular(0),
           ),
         ),
-        child: Text(
-          message.text,
-          style: AppTheme.body.copyWith(
-            color: Colors.white,
-            height: 1.5,
-            fontWeight: isUser ? FontWeight.w600 : FontWeight.w500,
+        child: MarkdownBody(
+          data: message.text,
+          styleSheet: MarkdownStyleSheet(
+            p: AppTheme.body.copyWith(
+              color: isUser ? AppTheme.bg : Colors.white,
+              height: 1.4,
+            ),
           ),
         ),
       ),
@@ -169,74 +297,41 @@ class _ChatBubble extends StatelessWidget {
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/*                             TYPING INDICATOR                               */
-/* -------------------------------------------------------------------------- */
+class _QuickChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _QuickChip(this.label, {required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return ActionChip(
+      label: Text(label, style: AppTheme.caption),
+      backgroundColor: AppTheme.cardBgAlt,
+      side: const BorderSide(color: AppTheme.borderSoft),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      onPressed: onTap,
+    );
+  }
+}
+
+class _ChatMessage {
+  String text;
+  final bool isUser;
+  _ChatMessage({required this.text, required this.isUser});
+  factory _ChatMessage.user(String text) =>
+      _ChatMessage(text: text, isUser: true);
+  factory _ChatMessage.bot(String text) =>
+      _ChatMessage(text: text, isUser: false);
+}
 
 class _TypingIndicator extends StatelessWidget {
   const _TypingIndicator();
-
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          const SizedBox(width: 12),
-          Text("Wellness Coach is thinking", style: AppTheme.caption),
-          const SizedBox(width: 8),
-          _Dot(),
-          _Dot(delay: 200),
-          _Dot(delay: 400),
-        ],
-      ),
-    );
-  }
-}
-
-class _Dot extends StatefulWidget {
-  final int delay;
-  const _Dot({this.delay = 0});
-
-  @override
-  State<_Dot> createState() => _DotState();
-}
-
-class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _fade;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 900),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _fade,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2),
-        child: Text(
-          "•",
-          style: TextStyle(
-            color: AppTheme.primary,
-            fontSize: 22,
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.all(12),
+    child: Text(
+      "Companion is thinking...",
+      style: TextStyle(color: Colors.grey, fontSize: 12),
+    ),
+  );
 }
