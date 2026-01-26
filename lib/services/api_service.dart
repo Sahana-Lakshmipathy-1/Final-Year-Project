@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:lumora/services/user_session.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiService {
   // ✅ Your Actual API Gateway URL
-  static const String baseUrl =
-      "https://j9g0v8wjm6.execute-api.us-east-2.amazonaws.com/dev/routine";
+  static String baseUrl = dotenv.env['BASE_URL'] ?? "";
 
   // --- 1. SMART HELPER METHOD (Unwraps AWS Response) ---
   Future<dynamic> _post(Map<String, dynamic> body) async {

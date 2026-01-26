@@ -5,6 +5,7 @@ import 'package:lumora/theme/app_theme.dart';
 import 'package:lumora/layouts/first aid/first_aid_category_card.dart';
 import 'package:lumora/layouts/first aid/first_aid_chatbot.dart';
 import 'package:lumora/layouts/first aid/first_aid_detail_page.dart';
+import 'package:lumora/layouts/first aid/first_aid_dial.dart'; // 1. Import your dial button
 
 class FirstAidPage extends StatelessWidget {
   const FirstAidPage({super.key});
@@ -187,7 +188,7 @@ class FirstAidPage extends StatelessWidget {
             const SizedBox(height: 36),
 
             /// ------------------------------------------------------------------
-            /// EMERGENCY CTA
+            /// EMERGENCY CTA (Updated with CallRelativeButton)
             /// ------------------------------------------------------------------
             Container(
               padding: const EdgeInsets.all(16),
@@ -209,24 +210,9 @@ class FirstAidPage extends StatelessWidget {
                     style: AppTheme.caption,
                   ),
                   const SizedBox(height: 14),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        // TODO: Call emergency contact / relative
-                      },
-                      icon: const Icon(LucideIcons.phoneCall),
-                      label: const Text("Call Emergency Contact"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.error,
-                        foregroundColor: AppTheme.textWhite,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: AppTheme.radiusMedium,
-                        ),
-                      ),
-                    ),
-                  ),
+
+                  // 2. REPLACED old button with your new widget
+                  CallRelativeButton(),
                 ],
               ),
             ),

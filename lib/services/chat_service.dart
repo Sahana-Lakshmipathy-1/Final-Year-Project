@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ChatService {
   WebSocketChannel? _channel;
-  final String _url =
-      'wss://7tjkmiv1ii.execute-api.us-east-2.amazonaws.com/production/';
+  final String _url = dotenv.env['WEBSOCKET_URL'] ?? "";
 
   String? connectionId; // 🔑 Fresh ID
 
