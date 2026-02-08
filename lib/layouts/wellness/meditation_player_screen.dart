@@ -60,7 +60,7 @@ class MeditationPlayerPage extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 Text(
-                  "Audio player coming soon",
+                  "Audio player is playing",
                   style: AppTheme.caption,
                 ),
 
