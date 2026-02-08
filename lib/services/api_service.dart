@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:lumora/services/user_session.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 class ApiService {
   // ✅ Your Actual API Gateway URL
@@ -44,14 +46,34 @@ class ApiService {
   }
 
   // --- 2. AUTHENTICATION ---
+  String hashPassword(String password) {
+  var bytes = utf8.encode(password);
+  var digest = sha256.convert(bytes);
+  return digest.toString(); // This is the hashed password
+}
+
 
   Future<Map<String, dynamic>> logIn(String email, String password) async {
+    final hashedpassword = hashPassword(password);
+    print("HASH SENT TO BACKEND: $hashedpassword");
     return await _post({
       "event_type": "log_in",
       "email": email,
-      "password": password,
+      "password": hashedpassword,
     });
   }
+
+  Future<Map<String, dynamic>> logOut(String? email) async {
+    if (email == null) {
+      return {"message": "No active session"};
+    }
+
+    return await _post({
+      "event_type": "log_out",
+      "email": email,
+    });
+  }
+
 
   Future<Map<String, dynamic>> signUp({
     required String email,
@@ -68,7 +90,7 @@ class ApiService {
     return await _post({
       "event_type": "sign_in", // Matches your backend event name
       "email": email,
-      "password": password,
+      "password": hashPassword(password),
       "name": name,
       "age": age,
       "weight": weight,
